@@ -7,7 +7,9 @@ const getPagos = async(req, res) => {
     const pagos = await Pago.find({})
         .populate('usuario')
         .populate('blog')
-        .populate('plan');
+        // .populate('plan')
+        .populate('Subcriptionpaypal')
+        .populate('Paypalplans');
 
     res.json({
         ok: true,
@@ -23,7 +25,8 @@ const getPago = async(req, res) => {
     Pago.findById(id)
         .populate('usuario')
         .populate('blog')
-        .populate('plan')
+        .populate('Subcriptionpaypal')
+        .populate('Paypalplans')
         .exec((err, pago) => {
             if (err) {
                 return res.status(500).json({
@@ -113,6 +116,8 @@ const actualizarPago = async(req, res) => {
 
 
 };
+
+
 const actualizarPagoStatus = async(req, res) => {
 
     const id = req.params.id;
@@ -260,7 +265,9 @@ function newest(req, res) {
     
 // };
 
-
+// function methodToRun(){
+//     console.log ("King Chronos")
+// }
 
 
 
@@ -274,7 +281,8 @@ module.exports = {
     activar,
     listarPagoPorUsuario,
     newest,
-    actualizarPagoStatus
+    actualizarPagoStatus,
+    // methodToRun
 
 
 };

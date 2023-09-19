@@ -34,10 +34,10 @@ const {
 router.get('/', validarJWT, getUsuariosList);
 router.get('/recientes', newest);
 router.get('/all', validarJWT, getAllUsers);
-router.delete('/delete/:id', [validarJWT], borrarUsuario);
-router.get('/:id', [validarJWT], getUsuario);
 router.get('/editores', getAllEditores);
+router.get('/:id', [validarJWT], getUsuario);
 router.get('/user_profile/:id', listarProfileUsuario);
+router.delete('/delete/:id', [validarJWT], borrarUsuario);
 
 router.get('/user_token/set/:email', set_token_recovery);
 router.get('/user_verify/token/:email/:codigo', verify_token_recovery);
@@ -76,9 +76,10 @@ router.put('/editarRole/:id', [
 
 router.put('/editarAdmin/:id', [
     validarJWT,
-    validarAdminRole,
+    // validarAdminRole,
+    // validarSuperAdminRole,
     // validarAdminRoleOMismoUsuario,
-    check('first_name', 'el nombre es obligatorio').not().isEmpty(),
+    check('username', 'el nombre es obligatorio').not().isEmpty(),
     check('email', 'el email es obligatorio').isEmail(),
     check('role', 'el role es obligatorio').not().isEmpty(),
     validarCampos

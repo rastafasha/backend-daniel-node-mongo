@@ -20,6 +20,7 @@ const profileSchema = Schema({
     nombrePaypal: { type: String, require: false },
     direccion: { type: String, required: false },
     usuario: { type: Schema.Types.ObjectId, ref: 'Usuario' },
+    blog: { type: Schema.Types.ObjectId, ref: 'Blog' },
 }, { collection: 'profiles' });
 
 

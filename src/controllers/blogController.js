@@ -8,6 +8,7 @@ const getBlogs = async(req, res) => {
     const blogs = await Blog.find({})
     .populate('usuario')
     .populate('pago')
+    .populate('binancepay')
     .populate('categoria');
 
     res.json({
@@ -24,6 +25,7 @@ const getBlog = async(req, res) => {
     Blog.findById(id, {})
     .populate('usuario')
     .populate('pago')
+    .populate('binancepay')
     .populate('categoria')
         .exec((err, blog) => {
             if (err) {
@@ -179,29 +181,49 @@ function activar(req, res) {
 
 const destacado = async(req, res, next) => {
 
-    try {
-        const blogs = await Blog.find({
-            where: {
-                isFeatured: true
+    
+    Blog.find({
+                where: {
+                    isFeatured: true
+                }
+            }, (err, blog_data) => {
+        if (!err) {
+            if (blog_data) {
+                res.status(200).send({ blogs: blog_data });
+            } else {
+                res.status(500).send({ error: err });
             }
-        })
+        } else {
+            res.status(500).send({ error: err });
+        }
+    });
 
-        res.json({
-            success: true,
-            data: {
-                blogs: blogs
-            }
-        })
+    // try {
+    //     const blogs = await Blog.find({
+    //         where: {
+    //             isFeatured: true
+    //         }
+    //     })
 
-    } catch (error) {
-        return next(error);
-    }
+    //     res.json({
+    //         success: true,
+    //         blogs: blogs
+    //     })
+
+    // } catch (error) {
+    //     return next(error);
+    // }
 };
 
 function find_by_slug(req, res) {
     var slug = req.params['slug'];
 
-    Blog.findOne({ slug: slug }).exec((err, blog_data) => {
+    Blog.findOne({ slug: slug })
+    .populate('usuario')
+    .populate('categoria')
+    .populate('binancepay')
+    .populate('pago')
+    .exec((err, blog_data) => {
         if (err) {
             res.status(500).send({ message: 'Ocurrió un error en el servidor.' });
         } else {
@@ -215,7 +237,7 @@ function find_by_slug(req, res) {
 }
 
 function listar_newest(req, res) {
-    Blog.find().sort({ createdAt: -1 }).limit(4).exec((err, data) => {
+    Blog.find({}).populate('usuario').populate('categoria').populate('binancepay').sort({ createdAt: -1 }).limit(4).exec((err, data) => {
         if (data) {
             res.status(200).send({ blogs: data });
         }
@@ -234,7 +256,7 @@ const listarBlogPorUsuario = (req, res) => {
         } else {
             res.status(500).send({ error: err });
         }
-    });
+    }).populate('usuario');
 }
 const listarBlogPorCategoria = (req, res) => {
     var nombre = req.params['nombre'];

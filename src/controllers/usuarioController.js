@@ -219,7 +219,7 @@ const getUsuario = async(req, res = response) => {
 
     // }
 
-    Usuario.findById(id)
+    Usuario.findById({id})
         .populate('profile')
         .populate('blog')
         .populate('pago')
@@ -264,8 +264,10 @@ const actualizarUAdmin = async(req, res = response) => {
         }
 
         //actualizaciones
-        const { password, google, email, ...campos } = req.body;
+        const { password, google, email,  ...campos } = req.body;
 
+
+        
 
         if (usuarioDB.email !== email) {
 
@@ -288,6 +290,11 @@ const actualizarUAdmin = async(req, res = response) => {
                 msg: 'Usuario de google no puede cambiar su correo'
             });
         }
+
+        //encriptar password
+        const salt = bcrypt.genSaltSync();
+        usuarioDB.password = bcrypt.hashSync(password, salt);
+            
         const usuarioActualizado = await Usuario.findByIdAndUpdate(uid, campos, { new: true });
 
         res.json({
@@ -442,12 +449,12 @@ const crearEditor = async(req, res = response) => {
 const getAllEditores = (req, res) => {
 
 
-    Usuario.findOne({ role: 'EDITOR' }).exec((err, editor) => {
+    Usuario.find({ role: 'EDITOR' }).exec((err, editores) => {
         if (err) {
             res.status(500).send({ message: 'Ocurrió un error en el servidor.' });
         } else {
-            if (editor) {
-                res.status(200).send({ editor: editor });
+            if (editores) {
+                res.status(200).send({ editores: editores });
             } else {
                 res.status(500).send({ message: 'No se encontró ningun dato en esta sección.' });
             }

@@ -70,12 +70,48 @@ const actualizarProfile = async(req, res) => {
 const getProfiles = async(req, res) => {
 
     const profiles = await Profile.find()
-        .populate('usuario');
+        .populate('blog')
+        .populate('pagos')
+        .populate('usuario')
 
     res.json({
         ok: true,
         profiles
     });
+};
+
+const getProfilesrole = async(req, res) => {
+
+    // const profiles = await Profile.find({ role: 'EDITOR' })
+    //     .populate('usuario', 'role editor');
+
+    // res.json({
+    //     ok: true,
+    //     profiles
+    // });
+
+     Profile.find(
+
+        // {
+        //     where: {
+        //         role: 'EDITOR'
+        //     }
+        // }
+     )
+    .populate('usuario', 'username role email')
+    .populate('blog')
+    .exec((err, profiles) => {
+        if (err) {
+            res.status(500).send({ message: 'Ocurrió un error en el servidor.' });
+        } else {
+            if (profiles) {
+                res.status(200).send({ profiles: profiles });
+            } else {
+                res.status(500).send({ message: 'No se encontró ningun dato en esta sección.' });
+            }
+        }
+    });
+
 };
 
 
@@ -153,7 +189,8 @@ const listarProfilePorUsuario = (req, res) => {
         } else {
             res.status(500).send({ error: err });
         }
-    }).populate('usuario');
+    }).populate('usuario')
+    .populate('blog');
 }
 
 
@@ -164,7 +201,8 @@ module.exports = {
     getProfile,
     actualizarProfile,
     borrarProfile,
-    listarProfilePorUsuario
+    listarProfilePorUsuario,
+    getProfilesrole
 
 
 };

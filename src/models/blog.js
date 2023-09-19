@@ -12,9 +12,10 @@ var BlogSchema = Schema({
     usuario: { type: Schema.Types.ObjectId, ref: 'Usuario' },
     categoria: { type: Schema.Types.ObjectId, ref: 'Categoria' },
     pago: { type: Schema.Types.ObjectId, ref: 'Pago' },
+    binancepay: { type: Schema.Types.ObjectId, ref: 'Binancepay' },
     ventas: { type: Number },
     status: { type: String, required: false, default: 'Desactivado' },
-    isFeatured: { type: Boolean, required: false },
+    isFeatured: { type: Boolean, required: true },
     createdAt: { type: Date, default: Date.now, required: true },
     updatedAt: { type: Date, default: Date.now, required: true }
 }, { collection: 'blogs' });
