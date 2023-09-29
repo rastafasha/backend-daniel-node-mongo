@@ -179,41 +179,39 @@ function activar(req, res) {
     })
 }
 
-const destacado = async(req, res, next) => {
+function destacados(req, res) {
 
-    
-    Blog.find({
-                where: {
-                    isFeatured: true
-                }
-            }, (err, blog_data) => {
-        if (!err) {
+    Blog.find({  isFeatured: ['true'] }).populate('categoria').exec((err, blog_data) => {
+        if (err) {
+            res.status(500).send({ message: 'Ocurrió un error en el servidor.' });
+        } else {
             if (blog_data) {
                 res.status(200).send({ blogs: blog_data });
             } else {
-                res.status(500).send({ error: err });
+                res.status(500).send({ message: 'No se encontró ningun dato en esta sección.' });
             }
-        } else {
-            res.status(500).send({ error: err });
         }
     });
+}
 
-    // try {
-    //     const blogs = await Blog.find({
-    //         where: {
-    //             isFeatured: true
-    //         }
-    //     })
+function activos(req, res) {
 
-    //     res.json({
-    //         success: true,
-    //         blogs: blogs
-    //     })
+    Blog.find({  status: ['Activo'] }).populate('categoria').exec((err, blog_data) => {
+        if (err) {
+            res.status(500).send({ message: 'Ocurrió un error en el servidor.' });
+        } else {
+            if (blog_data) {
+                res.status(200).send({ blogs: blog_data });
+            } else {
+                res.status(500).send({ message: 'No se encontró ningun dato en esta sección.' });
+            }
+        }
+    });
+}
 
-    // } catch (error) {
-    //     return next(error);
-    // }
-};
+
+
+
 
 function find_by_slug(req, res) {
     var slug = req.params['slug'];
@@ -237,7 +235,7 @@ function find_by_slug(req, res) {
 }
 
 function listar_newest(req, res) {
-    Blog.find({}).populate('usuario').populate('categoria').populate('binancepay').sort({ createdAt: -1 }).limit(4).exec((err, data) => {
+    Blog.find({  status: ['Activo'] }).populate('usuario').populate('categoria').populate('binancepay').sort({ createdAt: -1 }).limit(4).exec((err, data) => {
         if (data) {
             res.status(200).send({ blogs: data });
         }
@@ -327,14 +325,15 @@ module.exports = {
     borrarBlog,
     desactivar,
     activar,
-    destacado,
+    destacados,
     find_by_slug,
     listar_newest,
     listarBlogPorUsuario,
     listarBlogPorCategoria,
     listar_best_sellers,
     cat_by_name,
-    aumentar_venta
+    aumentar_venta,
+    activos
 
 
 };

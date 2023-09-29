@@ -11,7 +11,8 @@
     actualizarSubcriptionPlanPaypal,
     desactivar,
     activar,
-    listar_newest
+    listar_newest,
+    listarPorUsuario
  
  } = require('../controllers/crudSubcripcionPaypaldb');
  const { validarJWT } = require('../middlewares/validar-jwt');
@@ -21,7 +22,7 @@
  router.get('/', getSubcriptionPlanPaypals);
  router.get('/:id', getSubcriptionPlanPaypal);
  router.get('/recientes', listar_newest);
- 
+ router.get('/user_profile/:id', listarPorUsuario);
  
  router.post('/crear', crearSubcriptionPlanPaypal);
  

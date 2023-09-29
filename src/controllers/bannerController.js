@@ -136,6 +136,22 @@ const borrarBanner = async(req, res) => {
     }
 };
 
+function activos(req, res) {
+
+    Banner.find({  status: ['Activo'] }).exec((err, banner_data) => {
+        if (err) {
+            res.status(500).send({ message: 'Ocurrió un error en el servidor.' });
+        } else {
+            if (banner_data) {
+                res.status(200).send({ banners: banner_data });
+            } else {
+                res.status(500).send({ message: 'No se encontró ningun dato en esta sección.' });
+            }
+        }
+    });
+}
+
+
 
 function desactivar(req, res) {
     var id = req.params['id'];
@@ -180,6 +196,7 @@ module.exports = {
     borrarBanner,
     desactivar,
     activar,
+    activos
 
 
 };

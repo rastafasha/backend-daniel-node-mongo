@@ -21,6 +21,8 @@ const profileSchema = Schema({
     direccion: { type: String, required: false },
     usuario: { type: Schema.Types.ObjectId, ref: 'Usuario' },
     blog: { type: Schema.Types.ObjectId, ref: 'Blog' },
+    pago: { type: Schema.Types.ObjectId, ref: 'Pago' },
+    subcription: { type: Schema.Types.ObjectId, ref: 'Subcriptionpaypal' },
 }, { collection: 'profiles' });
 
 

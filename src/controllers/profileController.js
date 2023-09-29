@@ -1,5 +1,6 @@
 const { response } = require('express');
 const Profile = require('../models/profile');
+const Subcriptionpaypal = require('../models/subcriptionPaypal');
 
 const crearProfile = async(req, res) => {
 
@@ -72,6 +73,7 @@ const getProfiles = async(req, res) => {
     const profiles = await Profile.find()
         .populate('blog')
         .populate('pagos')
+        .populate('subcription')
         .populate('usuario')
 
     res.json({
@@ -190,6 +192,7 @@ const listarProfilePorUsuario = (req, res) => {
             res.status(500).send({ error: err });
         }
     }).populate('usuario')
+    .populate('subcription')
     .populate('blog');
 }
 

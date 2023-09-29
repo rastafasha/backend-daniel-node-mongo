@@ -1,10 +1,11 @@
 const { response } = require('express');
 const Categoria = require('../models/categoria');
+const Blog = require('../models/blog');
 
 const getCategorias = async(req, res) => {
 
     const categorias = await Categoria.find()
-        .populate('blog');
+        .populate('blog')
 
     res.json({
         ok: true,
@@ -32,7 +33,8 @@ const getCategoria = async(req, res) => {
 
     const id = req.params.id;
 
-    Categoria.findById(id)
+
+    Categoria.findById(id, {})
         .populate('blog')
         .exec((err, categoria) => {
             if (err) {
@@ -57,11 +59,7 @@ const getCategoria = async(req, res) => {
         });
 
 
-    // res.json({
-    //     ok: true,
-    //     categoria
-    //     //uid: req.uid
-    // });
+    
 };
 
 const crearCategoria = async(req, res) => {

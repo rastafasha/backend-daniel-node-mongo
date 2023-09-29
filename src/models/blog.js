@@ -5,7 +5,8 @@ var BlogSchema = Schema({
 
     name: { type: String, required: true },
     img: { type: String, required: false },
-    description: { type: String, required: false },
+    introhome: { type: String, required: true },
+    description: { type: String, required: true },
     adicional: { type: String, required: true },
     price: { type: Number, required: true },
     slug: { type: String, required: true },

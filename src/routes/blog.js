@@ -12,7 +12,8 @@ const {
     borrarBlog,
     desactivar,
     activar,
-    destacado,
+    destacados,
+    activos,
     find_by_slug,
     listar_newest,
     listarBlogPorUsuario,
@@ -27,7 +28,8 @@ const { check } = require('express-validator');
 const { validarCampos } = require('../middlewares/validar-campos');
 
 router.get('/', getBlogs);
-router.get('/destacados', destacado);
+router.get('/destacados', destacados);
+router.get('/activos', activos);
 router.get('/find_by_slug/:slug', find_by_slug);
 router.get('/recientes', listar_newest);
 router.get('/user_blog/:id', listarBlogPorUsuario);

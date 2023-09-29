@@ -192,6 +192,38 @@ const validarUserRole = async(req, res, next) => {
     }
 };
 
+const validarMiembroRole = async(req, res, next) => {
+
+    const uid = req.uid;
+
+    try {
+
+        const usuarioDB = await Usuario.findById(uid);
+
+        if (!usuarioDB) {
+            return res.status(404).json({
+                ok: false,
+                msg: 'El usuario no existe'
+            });
+        }
+
+        if (usuarioDB.role !== 'MEMBER') {
+            return res.status(403).json({
+                ok: false,
+                msg: 'No tiene privilegios para hacer eso'
+            });
+        }
+
+        next();
+
+    } catch (error) {
+        res.status(500).json({
+            ok: false,
+            msg: 'Error hable con el admin'
+        });
+    }
+};
+
 const validarUserRoleOMismoUsuario = async(req, res, next) => {
 
     const uid = req.uid;
@@ -234,5 +266,6 @@ module.exports = {
     validarAdminRole,
     validarSuperAdminRole,
     validarEditorRole,
+    validarMiembroRole,
     validarUserRoleOMismoUsuario
 };

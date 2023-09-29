@@ -12,6 +12,7 @@ const usuarioSchema = Schema({
     profile: { type: Schema.Types.ObjectId, ref: 'Profile' },
     blog: { type: Schema.Types.ObjectId, ref: 'Blog', require: true },
     pago: { type: Schema.Types.ObjectId, ref: 'Pago', require: true },
+    subcription: { type: Schema.Types.ObjectId, ref: 'Subcriptionpaypal' },
     createdAt: { type: Date, default: Date.now, required: true },
     updatedAt: { type: Date, default: Date.now, required: true }
 }, { collection: 'usuarios' });

@@ -67,6 +67,11 @@ app.use('/api/banners', require('./routes/banner'));
 app.use('/api/uploads', require('./routes/uploads'));
 app.use('/api/todo', require('./routes/busquedas'));
 app.use('/api/contacto', require('./routes/contacto'));
+
+app.use('/api/cursos', require('./routes/curso'));
+app.use('/api/videos', require('./routes/video'));
+app.use('/api/favoritos', require('./routes/favorito'));
+
 app.use('/api/paypal', require('./routes/paypal'));
 app.use('/api/binancepay', require('./routes/binancepay'));
 app.use('/api/planpaypal', require('./routes/planpaypal'));

@@ -6,10 +6,7 @@ const getPagos = async(req, res) => {
 
     const pagos = await Pago.find({})
         .populate('usuario')
-        .populate('blog')
-        // .populate('plan')
-        .populate('Subcriptionpaypal')
-        .populate('Paypalplans');
+        .populate('blog');
 
     res.json({
         ok: true,
@@ -25,8 +22,7 @@ const getPago = async(req, res) => {
     Pago.findById(id)
         .populate('usuario')
         .populate('blog')
-        .populate('Subcriptionpaypal')
-        .populate('Paypalplans')
+        // .populate('Subcriptionpaypal')
         .exec((err, pago) => {
             if (err) {
                 return res.status(500).json({
@@ -232,7 +228,7 @@ const listarPagoPorUsuario = (req, res) => {
         }
     })
     .populate('blog')
-    .populate('plan')
+    // .populate('Subcriptionpaypal')
     .populate('usuario');
 }
 

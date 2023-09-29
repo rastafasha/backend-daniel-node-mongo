@@ -3,6 +3,7 @@ const Pago = require('../models/pago');
 const Categoria = require('../models/categoria');
 const Blog = require('../models/blog');
 const Usuario = require('../models/usuario');
+const Subcriptionpaypal = require('../models/subcriptionPaypal');
 
 const getTodo = async(req, res = response) => {
 
@@ -10,11 +11,12 @@ const getTodo = async(req, res = response) => {
     const regex = new RegExp(busqueda, 'i');
 
 
-    const [usuarios, blogs, categorias, pagos] = await Promise.all([
+    const [usuarios, blogs, categorias, pagos, subcriptions] = await Promise.all([
         Usuario.find({ username: regex}),
         Blog.find({ name: regex }),
         Categoria.find({ nombre: regex }),
-        Pago.find({ referencia: regex })
+        Pago.find({ referencia: regex }),
+        Subcriptionpaypal.find({ orderID: regex })
     ]);
 
     res.json({
@@ -23,6 +25,7 @@ const getTodo = async(req, res = response) => {
         blogs,
         categorias,
         pagos,
+        subcriptions,
 
     })
 }
@@ -50,6 +53,10 @@ const getDocumentosColeccion = async(req, res = response) => {
             data = await Pago.find({ referencia: regex })
                 .populate('referencia', 'monto img');
             break;
+        case 'subcriptions':
+            data = await Subcriptionpaypal.find({ orderID: regex })
+                .populate('orderID', 'orderID payerID plan_id status usuarios createdAt updatedAt');
+            break;
         default:
             return res.status(400).json({
                 ok: false,
@@ -62,11 +69,12 @@ const getDocumentosColeccion = async(req, res = response) => {
         resultados: data
     });
 
-    const [usuarios, blogs, categorias, pagos] = await Promise.all([
+    const [usuarios, blogs, categorias, pagos, subcriptions] = await Promise.all([
         Usuario.find({ username: regex }),
         Blog.find({ name: regex }),
         Categoria.find({ nombre: regex }),
-        Pago.find({ referencia: regex })
+        Pago.find({ referencia: regex }),
+        Subcriptionpaypal.find({ orderID: regex })
     ]);
 
     res.json({
@@ -74,7 +82,8 @@ const getDocumentosColeccion = async(req, res = response) => {
         usuarios,
         blogs,
         categorias,
-        pagos
+        pagos,
+        subcriptions
 
     })
 }

@@ -19,7 +19,8 @@ const {
     verify_token_recovery,
     change_password,
     getAllEditores,
-    listarProfileUsuario
+    listarProfileUsuario,
+    cambiarAMiembro
 } = require('../controllers/usuarioController');
 const {
     validarJWT,
@@ -43,6 +44,7 @@ router.get('/user_token/set/:email', set_token_recovery);
 router.get('/user_verify/token/:email/:codigo', verify_token_recovery);
 router.put('/user_password/change/:email', change_password);
 
+router.get('/activarMiembro/:id', validarJWT, cambiarAMiembro);
 
 router.post('/crear', [
     check('username', 'el username es obligatorio').not().isEmpty(),

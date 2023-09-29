@@ -1,5 +1,5 @@
 const { response } = require('express');
-const Subcriptionpaypal = require('../models/subcriptionsPaypal');
+const Subcriptionpaypal = require('../models/subcriptionPaypal');
 
 
 const getSubcriptionPlanPaypals = async(req, res) => {
@@ -19,7 +19,7 @@ const getSubcriptionPlanPaypal = async(req, res) => {
 
     Subcriptionpaypal.findById(id)
         .populate('usuario')
-        .exec((err, subcriptionPaypals) => {
+        .exec((err, subcriptionPaypal) => {
             if (err) {
                 return res.status(500).json({
                     ok: false,
@@ -27,7 +27,7 @@ const getSubcriptionPlanPaypal = async(req, res) => {
                     errors: err
                 });
             }
-            if (!subcriptionPaypals) {
+            if (!subcriptionPaypal) {
                 return res.status(400).json({
                     ok: false,
                     mensaje: 'El subcriptionPaypal con el id ' + id + 'no existe',
@@ -152,6 +152,23 @@ function listar_newest(req, res) {
 }
 
 
+
+
+const listarPorUsuario = (req, res) => {
+    var id = req.params['id'];
+    Subcriptionpaypal.find({ usuario: id }, (err, subcription_data) => {
+        if (!err) {
+            if (subcription_data) {
+                res.status(200).send({ subcription: subcription_data });
+            } else {
+                res.status(500).send({ error: err });
+            }
+        } else {
+            res.status(500).send({ error: err });
+        }
+    }).populate('usuario');
+}
+
 module.exports = {
     getSubcriptionPlanPaypals,
     getSubcriptionPlanPaypal,
@@ -159,7 +176,8 @@ module.exports = {
     actualizarSubcriptionPlanPaypal,
     desactivar,
     activar,
-    listar_newest
+    listar_newest,
+    listarPorUsuario
 
 
 };

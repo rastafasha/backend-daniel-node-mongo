@@ -163,6 +163,7 @@ const getUsuariosList = async(req, res) => {
     const usuarios = await Usuario.find({})
         .populate('pago')
         .populate('blog')
+        .populate('subcription')
         .populate('profile');
 
     res.json({
@@ -186,6 +187,7 @@ const getAllUsers = async(req, res) => {
     const usuarios = await Usuario.find({})
         .populate('pago')
         .populate('blog')
+        .populate('subcription')
         .populate('profile');
 
     res.json({
@@ -200,50 +202,25 @@ const getUsuario = async(req, res = response) => {
 
     const id = req.params.id;
 
-    // try {
+    try {
 
-    //     const usuario = await Usuario.findById(id)
-    //         .populate('profile', 'first_name last_name pais estado ciudad telhome')
+        const usuario = await Usuario.findById(id)
+            .populate('profile', 'first_name last_name pais estado ciudad telhome')
 
-    //     res.json({
-    //         ok: true,
-    //         usuario
-    //     });
-
-    // } catch (error) {
-    //     console.log(error);
-    //     res.status(500).json({
-    //         ok: false,
-    //         msg: 'Error hable con el admin'
-    //     });
-
-    // }
-
-    Usuario.findById({id})
-        .populate('profile')
-        .populate('blog')
-        .populate('pago')
-        .exec((err, usuario) => {
-            if (err) {
-                return res.status(500).json({
-                    ok: false,
-                    mensaje: 'Error al buscar usuario',
-                    errors: err
-                });
-            }
-            if (!usuario) {
-                return res.status(400).json({
-                    ok: false,
-                    mensaje: 'El usuario con el id ' + id + 'no existe',
-                    errors: { message: 'No existe un usuario con ese ID' }
-                });
-
-            }
-            res.status(200).json({
-                ok: true,
-                usuario: usuario
-            });
+        res.json({
+            ok: true,
+            usuario: usuario
         });
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            ok: false,
+            msg: 'Error hable con el admin'
+        });
+
+    }
+
 
 
 };
@@ -580,6 +557,22 @@ const listarProfileUsuario = (req, res) => {
 
 
 
+const cambiarAMiembro = async(req, res = response) => {
+    var id = req.params['id'];
+    // console.log(id);
+    Usuario.findByIdAndUpdate({ _id: id }, { role: 'MEMBER' }, (err, usuario_data) => {
+        if (err) {
+            res.status(500).send({ message: err });
+        } else {
+            if (usuario_data) {
+                res.status(200).send({ usuario: usuario_data });
+            } else {
+                res.status(403).send({ message: 'No se actualizó el usuario, vuelva a intentar nuevamente.' });
+            }
+        }
+    })
+};
+
 
 module.exports = {
     getUsuariosList,
@@ -595,5 +588,6 @@ module.exports = {
     change_password,
     newest,
     getAllEditores,
-    listarProfileUsuario
+    listarProfileUsuario,
+    cambiarAMiembro
 };

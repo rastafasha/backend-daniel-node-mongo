@@ -5,7 +5,7 @@ var CategoriaSchema = Schema({
     nombre: { type: String, required: true },
     blog: { type: Schema.Types.ObjectId, ref: 'Blog' },
     createdAt: { type: Date, default: Date.now, required: true },
-    updatedAt: { type: Date }
+    updatedAt: { type: Date, default: Date.now, required: true }
 }, { collection: 'categorias' });
 
 

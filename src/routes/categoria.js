@@ -20,6 +20,7 @@ const { validarCampos } = require('../middlewares/validar-campos');
 
 router.get('/', getCategorias);
 router.get('/lista', getCategoriasList);
+router.get('/:id', getCategoria);
 
 router.post('/crear', [
     validarJWT,
@@ -35,7 +36,7 @@ router.put('/editar/:id', [
 
 router.delete('/borrar/:id', validarJWT, borrarCategoria);
 
-router.get('/:id', getCategoria);
+
 
 
 router.get('/category_by_nombre/:nombre', find_by_name);
