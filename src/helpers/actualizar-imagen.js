@@ -1,7 +1,7 @@
 const fs = require('fs');
 const Profile = require('../models/profile');
 const Blog = require('../models/blog');
-const Pago = require('../models/pago');
+const Sideadvertising = require('../models/sideadvice');
 const Banner = require('../models/banner');
 const Binancepay = require('../models/binancepay');
 
@@ -19,7 +19,7 @@ const actualizarImagen = async(tipo, id, nombreArchivo) => {
         const mapTipo = {
             'profiles': await Profile.findById(id),
             'blogs': await Blog.findById(id),
-            'pagos': await Pago.findById(id),
+            'sideadvertisings': await Sideadvertising.findById(id),
             'banners': await Banner.findById(id),
             'binancepays': await Binancepay.findById(id),
         }

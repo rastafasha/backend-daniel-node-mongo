@@ -5,6 +5,7 @@ const Subcriptionpaypal = require('../models/subcriptionPaypal');
 const getSubcriptionPlanPaypals = async(req, res) => {
 
     const subcriptionPaypals = await Subcriptionpaypal.find()
+    .sort({ createdAt:'ASC' })
     .populate('usuario');
 
     res.json({
@@ -12,6 +13,15 @@ const getSubcriptionPlanPaypals = async(req, res) => {
         subcriptionPaypals
     });
 };
+
+function listar_newest(req, res) {
+    Subcriptionpaypal.find({}).populate('usuario').sort({ createdAt: -1 }).limit(4).exec((err, subcriptionPaypals) => {
+        if (subcriptionPaypals) {
+            res.status(200).send({ subcriptionPaypals: subcriptionPaypals });
+        }
+    });
+}
+
 
 const getSubcriptionPlanPaypal = async(req, res) => {
 
@@ -143,13 +153,7 @@ function activar(req, res) {
     })
 }
 
-function listar_newest(req, res) {
-    Subcriptionpaypal.find({}).populate('usuario').sort({ createdAt: -1 }).limit(4).exec((err, data) => {
-        if (data) {
-            res.status(200).send({ subcriptions: data });
-        }
-    });
-}
+
 
 
 
@@ -159,7 +163,7 @@ const listarPorUsuario = (req, res) => {
     Subcriptionpaypal.find({ usuario: id }, (err, subcription_data) => {
         if (!err) {
             if (subcription_data) {
-                res.status(200).send({ subcription: subcription_data });
+                res.status(200).send({ subcriptions: subcription_data });
             } else {
                 res.status(500).send({ error: err });
             }

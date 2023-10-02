@@ -18,7 +18,7 @@ const { validarCampos } = require('../middlewares/validar-campos');
 router.get('/', getContactos);
 
 router.post('/crear', [
-    check('nombres', 'El nombre es necesario').not().isEmpty(),
+    check('name', 'El nombre es necesario').not().isEmpty(),
     validarCampos
 ], envioCorreo);
 

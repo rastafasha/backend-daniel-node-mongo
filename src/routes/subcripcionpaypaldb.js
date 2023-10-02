@@ -16,12 +16,10 @@
  
  } = require('../controllers/crudSubcripcionPaypaldb');
  const { validarJWT } = require('../middlewares/validar-jwt');
- const { check } = require('express-validator');
- const { validarCampos } = require('../middlewares/validar-campos');
  
  router.get('/', getSubcriptionPlanPaypals);
  router.get('/:id', getSubcriptionPlanPaypal);
- router.get('/recientes', listar_newest);
+ router.get('/recientes/', listar_newest);
  router.get('/user_profile/:id', listarPorUsuario);
  
  router.post('/crear', crearSubcriptionPlanPaypal);

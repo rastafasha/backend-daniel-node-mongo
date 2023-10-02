@@ -66,7 +66,7 @@ app.use('/api/pagos', require('./src/routes/pago'));
 app.use('/api/banners', require('./src/routes/banner'));
 app.use('/api/uploads', require('./src/routes/uploads'));
 app.use('/api/todo', require('./src/routes/busquedas'));
-app.use('/api/contacto', require('./src/routes/contacto'));
+app.use('/api/contactos', require('./src/routes/contacto'));
 
 app.use('/api/cursos', require('./src/routes/curso'));
 app.use('/api/videos', require('./src/routes/video'));
@@ -76,7 +76,10 @@ app.use('/api/paypal', require('./src/routes/paypal'));
 app.use('/api/binancepay', require('./src/routes/binancepay'));
 app.use('/api/planpaypal', require('./src/routes/planpaypal'));
 app.use('/api/subcriptionpaypal', require('./src/routes/subcripcionpaypaldb'));
+app.use('/api/sideadvices', require('./src/routes/sideadvice'));
 
+
+//rutas
 //test
 app.get("/", (req, res) => {
     res.json({ message: "Welcome to nodejs." });
@@ -189,9 +192,9 @@ cron.schedule("1 * * * *", function () {
 
 
 //lo ultimo
-app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, 'public/index.html')); //ruta para produccion, evita perder la ruta
-});
+// app.get('*', (req, res) => {
+//     res.sendFile(path.resolve(__dirname, 'public/index.html')); //ruta para produccion, evita perder la ruta
+// });
 
 
 
@@ -243,7 +246,7 @@ const html = `
   </head>
   <body>
     <section>
-      Hello from Render!
+      Hello from Backend Nodejs!
     </section>
   </body>
 </html>
