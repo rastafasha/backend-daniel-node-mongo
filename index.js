@@ -93,9 +93,9 @@ app.use(bodyParser.json());
 
 
 //lo ultimo
-app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, 'public/index.html')); //ruta para produccion, evita perder la ruta
-});
+// app.get('*', (req, res) => {
+//     res.sendFile(path.resolve(__dirname, 'public')); //ruta para produccion, evita perder la ruta
+// });
 
 
 
