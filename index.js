@@ -104,7 +104,7 @@ async function middleware(req, res) {
 }
 
 // Para usar la función middleware en Node.js, puedes agregarla a una ruta en tu servidor
-app.get('/store', middleware);
+// app.get('/store', middleware);
 //fin storage
 
 //test
