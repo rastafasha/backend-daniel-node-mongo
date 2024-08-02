@@ -88,9 +88,9 @@ const axios = require('axios');
 
 async function middleware(req, res) {
   try {
-    const response = await axios.get('https://api.vercel.com/v9/projects/[projectId]/config/greeting', {
+    const response = await axios.get('https://api.vercel.com/v9/backend-daniel-node-mongo-store/[ecfg_s54e40cqwpdgwnr0n1wbb3iawiie]/config/greeting', {
       headers: {
-        'Authorization': 'Bearer [token]',
+        'Authorization': 'Bearer [1290b16d-703d-4b01-9916-5fcd2906d708]',
         'Content-Type': 'application/json'
       }
     });
