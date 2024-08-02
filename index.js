@@ -85,23 +85,23 @@ app.use('/api/sideadvices', require('./src/routes/sideadvice'));
 //storage
 // const axios = require('axios');
 
-async function middleware(req, res) {
-  try {
-    const response = await axios.get('https://api.vercel.com/v9/backend-daniel-node-mongo-store/[ecfg_s54e40cqwpdgwnr0n1wbb3iawiie]/config/greeting', {
-      headers: {
-        'Authorization': 'Bearer [1290b16d-703d-4b01-9916-5fcd2906d708]',
-        'Content-Type': 'application/json'
-      }
-    });
+// async function middleware(req, res) {
+//   try {
+//     const response = await axios.get('https://api.vercel.com/v9/backend-daniel-node-mongo-store/[ecfg_s54e40cqwpdgwnr0n1wbb3iawiie]/config/greeting', {
+//       headers: {
+//         'Authorization': 'Bearer [1290b16d-703d-4b01-9916-5fcd2906d708]',
+//         'Content-Type': 'application/json'
+//       }
+//     });
 
-    const greeting = response.data;
+//     const greeting = response.data;
 
-    res.json(greeting);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error al obtener la configuración' });
-  }
-}
+//     res.json(greeting);
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: 'Error al obtener la configuración' });
+//   }
+// }
 
 // Para usar la función middleware en Node.js, puedes agregarla a una ruta en tu servidor
 // app.get('/store', middleware);
