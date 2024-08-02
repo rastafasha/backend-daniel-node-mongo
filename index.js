@@ -83,19 +83,16 @@ app.use('/api/sideadvices', require('./src/routes/sideadvice'));
 
 
 //storage
-// const axios = require('axios');
+const axios = require('axios');
 TOKEN_VERCEL_STORAGE = '1290b16d-703d-4b01-9916-5fcd2906d708';
 
 async function middleware(req, res) {
   try {
-    const response = await axios.get('https://api.vercel.com/v1/edge-config', {
+    const response = await axios.get(`https://api.vercel.com/v1/edge-config?slug=backend-daniel-node-mongo-storag`, {
       headers: {
         Authorization: `Bearer ${TOKEN_VERCEL_STORAGE}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        slug: 'backend-daniel-node-mongo-storag',
-      }),
       timeout: 5000 // agregar un timeout de 5 segundos
     });
 
