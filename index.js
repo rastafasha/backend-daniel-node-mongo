@@ -15,7 +15,6 @@ const fs = require("fs");
 const os = require("os");
 //cronjobs 
 
-const token = require('.env')
 
 //crear server de express
 const app = express();
@@ -105,7 +104,7 @@ async function middleware(req, res) {
 }
 
 // Para usar la función middleware en Node.js, puedes agregarla a una ruta en tu servidor
-app.get('/welcome', middleware);
+app.get('/store', middleware);
 //fin storage
 
 //test
