@@ -84,14 +84,18 @@ app.use('/api/sideadvices', require('./src/routes/sideadvice'));
 
 //storage
 // const axios = require('axios');
+TOKEN_VERCEL_STORAGE = '1290b16d-703d-4b01-9916-5fcd2906d708';
 
 async function middleware(req, res) {
   try {
-    const response = await axios.get('https://api.vercel.com/v9/backend-daniel-node-mongo-storag/ecfg_s54e40cqwpdgwnr0n1wbb3iawiie/config/greeting', {
+    const response = await axios.get('https://api.vercel.com/v1/edge-config', {
       headers: {
-        'Authorization': 'Bearer [1290b16d-703d-4b01-9916-5fcd2906d708]',
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${TOKEN_VERCEL_STORAGE}`,
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify({
+        slug: 'backend-daniel-node-mongo-storag',
+      }),
       timeout: 5000 // agregar un timeout de 5 segundos
     });
 
@@ -105,7 +109,7 @@ async function middleware(req, res) {
 }
 
 // Para usar la función middleware en Node.js, puedes agregarla a una ruta en tu servidor
-app.get('/store', middleware);
+app.get('/storage', middleware);
 //fin storage
 
 //test
