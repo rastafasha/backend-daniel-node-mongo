@@ -23,6 +23,7 @@
     page3,
     page4,
     planpage2,
+    planpage,
     getSubcriptions,
     getSubcriptionbyId
  } = require('../controllers/paypalController');
@@ -34,6 +35,7 @@
  router.get('/subcription/:id', getSubcriptionbyId);
  router.get('/product/:id', getProductsbyId);
  router.get('/products', getProducts);
+ router.get('/plans/page/:id', planpage);
  router.get('/plans/page2', planpage2);
  router.get('/products/page2', page2);
  router.get('/products/page3', page3);

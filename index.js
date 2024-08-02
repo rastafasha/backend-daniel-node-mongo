@@ -15,6 +15,7 @@ const fs = require("fs");
 const os = require("os");
 //cronjobs 
 
+const token = require('.env')
 
 //crear server de express
 const app = express();
@@ -80,6 +81,33 @@ app.use('/api/sideadvices', require('./src/routes/sideadvice'));
 
 
 //rutas
+
+
+//storage
+const axios = require('axios');
+
+async function middleware(req, res) {
+  try {
+    const response = await axios.get('https://api.vercel.com/v9/projects/[projectId]/config/greeting', {
+      headers: {
+        'Authorization': 'Bearer [token]',
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const greeting = response.data;
+
+    res.json(greeting);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error al obtener la configuración' });
+  }
+}
+
+// Para usar la función middleware en Node.js, puedes agregarla a una ruta en tu servidor
+app.get('/welcome', middleware);
+//fin storage
+
 //test
 app.get("/", (req, res) => {
     res.json({ message: "Welcome to nodejs." });

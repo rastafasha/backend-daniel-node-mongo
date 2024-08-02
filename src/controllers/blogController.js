@@ -211,6 +211,14 @@ function activos(req, res) {
 
 
 
+function listar_newest(req, res) {
+    Blog.find({  status: ['Activo'] }).populate('usuario').populate('categoria').populate('binancepay').sort({ createdAt: -1 }).limit(4).exec((err, data) => {
+        if (data) {
+            res.status(200).send({ blogs: data });
+        }
+    });
+}
+
 
 
 function find_by_slug(req, res) {
@@ -230,14 +238,6 @@ function find_by_slug(req, res) {
             } else {
                 res.status(500).send({ message: 'No se encontró ningun dato en esta sección.' });
             }
-        }
-    });
-}
-
-function listar_newest(req, res) {
-    Blog.find({  status: ['Activo'] }).populate('usuario').populate('categoria').populate('binancepay').sort({ createdAt: -1 }).limit(4).exec((err, data) => {
-        if (data) {
-            res.status(200).send({ blogs: data });
         }
     });
 }

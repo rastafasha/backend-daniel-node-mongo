@@ -202,6 +202,20 @@ const updatePlan = (req, res) => {
     });
 };
 
+const planpage = (req, res) => {
+    const { body } = req;
+    paginaPost = 0;
+    const paginaPost = req.params.id;
+    request.get(`${PAYPAL_API}/v1/billing/plans?page_size=10&page=${paginaPost}`, {
+        auth,
+        body: {},
+        json: true
+    }, (err, response) => {
+        res.json({ planPaypal: response.body });
+    });
+};
+
+
 const planpage2 = (req, res) => {
     const { body } = req;
     request.get(`${PAYPAL_API}/v1/billing/plans?page_size=10&page=2`, {
@@ -351,6 +365,7 @@ module.exports = {
     updatePlan,
     activatePlan,
     desactivatePlan,
+    planpage,
     planpage2,
     page2,
     page3,
