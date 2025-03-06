@@ -40,7 +40,7 @@ app.use((req, res, next) => {
 
 const options = {
     cors: {
-        origin: 'https://malcolmcordova.com',
+        origin: 'https://malcolmcordova.com, https://backend-daniel-node-mongo.vercel.app/api/uploads/',
     },
 };
 
