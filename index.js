@@ -40,7 +40,7 @@ app.use((req, res, next) => {
 
 const options = {
     cors: {
-        origin: 'http://localhost:4200',
+        origin: 'http://localhost:4200, https://malcolmcordova.com/admin-node-articles-shop/',
     },
 };
 
