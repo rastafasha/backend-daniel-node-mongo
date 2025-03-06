@@ -29,10 +29,11 @@ const server = require('http').Server(app);
 //cors
 app.use(cors());
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*', 'https://backend-daniel-node-mongo.vercel.app/'); // Temporarily allow all origins for testing
+    res.header('Access-Control-Allow-Credentials', true); 
+    res.header('Access-Control-Allow-Origin', '*'); // Temporarily allow all origins for testing
     res.header('Access-Control-Allow-Headers', 'Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
-    res.header('Allow', 'GET, POST, OPTIONS, PUT, DELETE');
+    res.header('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+    res.header('Allow', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
     next();
 });
 
