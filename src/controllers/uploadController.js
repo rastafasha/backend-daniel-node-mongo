@@ -50,12 +50,12 @@ const fileUpload = async (req, res = response) => {
     const nombreArchivo = `${uuidv4()}.${extensionArchivo}`;
 
     //path para guardar la imagen
-    const path = `./uploads/${tipo}/${nombreArchivo}`;
+    const savePath = `./uploads/${tipo}/${nombreArchivo}`;
     fs.mkdirSync(path.dirname(savePath), { recursive: true });
 
 
     //mover la imagen
-    file.mv(path, async (err) => {
+    file.mv(savePath, async (err) => {
         if (err) {
             // console.log(err)
             return res.status(500).json({
@@ -86,14 +86,6 @@ const fileUpload = async (req, res = response) => {
             });
         }
 
-        //actualizar bd
-        actualizarImagen(tipo, id, nombreArchivo);
-
-        res.json({
-            ok: true,
-            msg: 'Archivo subido',
-            nombreArchivo
-        });
 
     });
 

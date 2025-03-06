@@ -27,8 +27,8 @@ const actualizarImagen = async(tipo, id, nombreArchivo) => {
         if (resultadoColeccion.length == 0) {
             return false;
         }
-
-        const path = `../uploads/${tipo}/${resultadoColeccion.img}`
+        
+        const path = `../../uploads/${tipo}/${resultadoColeccion.img}`
         if (fs.existsSync(path)) {
             //borrar la imagen si existe
             fs.unlinkSync(path)
