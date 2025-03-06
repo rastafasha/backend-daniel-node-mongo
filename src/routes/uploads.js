@@ -8,6 +8,7 @@ const expressfileUpload = require('express-fileupload');
 const { validarJWT } = require('../middlewares/validar-jwt');
 const router = Router();
 const { fileUpload, retornaImagen } = require('../controllers/uploadController');
+// const { fileUpload, retornaImagen } = require('../controllers/uploadCloudinaryController');
 
 
 router.use(expressfileUpload());
