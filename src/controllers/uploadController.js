@@ -73,10 +73,13 @@ const fileUpload = async (req, res = response) => {
                 folder: `articlesApp/uploads/${tipo}/`
             });
             console.log(result);
-
+            
             //actualizar bd
-            actualizarImagen(tipo, id, `${result.secure_url}` ); // Use the public ID from Cloudinary and the file extension
+            const nombreArchivo = result.secure_url
+            actualizarImagen(tipo, id, nombreArchivo ); // Use the public ID from Cloudinary and the file extension
+            // actualizarImagen(tipo, id, `${result.secure_url}` ); // Use the public ID from Cloudinary and the file extension
             // actualizarImagen(tipo, id, `${result.display_name}.${extensionArchivo}` ); // Use the public ID from Cloudinary and the file extension
+            console.log(nombreArchivo);
 
             res.json({
                 ok: true,
