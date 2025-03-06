@@ -37,7 +37,7 @@ const fileUpload = async (req, res = response) => {
 
     // procesar la imagen
     const file = req.files.img;
-
+    console.log(file);
     const nombreCortado = file.name.split('.');
     const extensionArchivo = nombreCortado[nombreCortado.length - 1];
 

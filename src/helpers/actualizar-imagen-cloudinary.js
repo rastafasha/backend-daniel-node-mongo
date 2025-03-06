@@ -1,21 +1,12 @@
-
-const fs = require('fs');
 const Profile = require('../models/profile');
 const Blog = require('../models/blog');
 const Sideadvertising = require('../models/sideadvice');
 const Banner = require('../models/banner');
 const Binancepay = require('../models/binancepay');
 
-const borrarImagen = (path) => {
-
-    if (fs.existsSync(path)) {
-        //borrar la imagen anterior
-        fs.unlinkSync(path);
-    }
-}
 
 
-const actualizarImagen = async(tipo, id, nombreArchivo, extensionArchivo) => {
+const actualizarImagenCloudinary = async(tipo, id, nombreArchivo) => {
     try {
         const mapTipo = {
             'profiles': await Profile.findById(id),
@@ -29,13 +20,9 @@ const actualizarImagen = async(tipo, id, nombreArchivo, extensionArchivo) => {
             return false;
         }
         
-        const path = `../../uploads/${tipo}/${resultadoColeccion.img}`
-        if (fs.existsSync(path)) {
-            //borrar la imagen si existe
-            fs.unlinkSync(path)
-        }
+        // No local file deletion logic needed
         resultadoColeccion.img = `${nombreArchivo}`; // Update the image name with concatenation
-        resultadoColeccion.extension = extensionArchivo; // Store the file extension
+        // No need to store the file extension
         await resultadoColeccion.save();
         return true;
 
@@ -47,6 +34,6 @@ const actualizarImagen = async(tipo, id, nombreArchivo, extensionArchivo) => {
 
 
 module.exports = {
-    actualizarImagen,
-    borrarImagen
+    actualizarImagenCloudinary
 };
+
