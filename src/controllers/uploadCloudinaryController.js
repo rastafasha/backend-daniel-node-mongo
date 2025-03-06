@@ -52,17 +52,31 @@ const fileUpload = async (req, res = response) => {
 
     //generar el nombre del archivo
     const nombreArchivo = `${uuidv4()}.${extensionArchivo}`;
+
+    //path para guardar la imagen
     const savePath = `./uploads/${tipo}/${nombreArchivo}`;
-    // Directly upload to Cloudinary
-    try {
-        const result = await cloudinary.uploader.upload(savePath, {
-            folder: `articlesApp/uploads/${tipo}/`
-        });
-        console.log(result);
+    // fs.mkdirSync(path.dirname(savePath), { recursive: true });
+    path.dirname(savePath), { recursive: true }
+     
+    //mover la imagen
+    file.mv(savePath, async (err) => {
+        if (err) {
+            // console.log(err)
+            return res.status(500).json({
+                ok: false,
+                msg: 'Error al mover la imagen'
+            });
+        }
+        // subir a Cloudinary
+        try {
+            const result = await cloudinary.uploader.upload(savePath, {
+                folder: `articlesApp/uploads/${tipo}/`
+            });
+            console.log(result);
             
-            // Update the database with the Cloudinary URL
-            const nombreArchivo = result.secure_url;
-            actualizarImagen(tipo, id, nombreArchivo);
+            //actualizar bd
+            const nombreArchivo = result.secure_url
+            actualizarImagen(tipo, id, nombreArchivo ); // Use the public ID from Cloudinary and the file extension
             // actualizarImagen(tipo, id, `${result.secure_url}` ); // Use the public ID from Cloudinary and the file extension
             // actualizarImagen(tipo, id, `${result.display_name}.${extensionArchivo}` ); // Use the public ID from Cloudinary and the file extension
             console.log(nombreArchivo);
@@ -79,32 +93,32 @@ const fileUpload = async (req, res = response) => {
                 error: error.message
             });
         }
+    });
 
-
-    };
-
-
+};
 
 const retornaImagen = (req, res) => {
     const tipo = req.params.tipo;
     const foto = req.params.foto;
 
-    // Retrieve the image directly from Cloudinary
-    // Retrieve the image directly from Cloudinary
-    // Retrieve the image directly from Cloudinary
+    const pathImg = path.join(__dirname, `../../uploads/${tipo}/${foto}`);
+    //traigo la foto desde cloudinary
     const urlImg = cloudinary.url(foto, {
         width: 300,
         height: 300,
         crop: 'fill'
     });
-    res.redirect(urlImg);
+    //imagen por defecto
+    if (fs.existsSync(pathImg)) {
+        res.sendFile(pathImg);
 
-
-
-
+    } else {
+        const pathImg = path.join(__dirname, `../../uploads/${tipo}/no-image.jpg`);
+        res.sendFile(pathImg);
     }
 
 
+};
 
 
 

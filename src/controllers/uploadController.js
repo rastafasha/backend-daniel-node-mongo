@@ -55,18 +55,18 @@ const fileUpload = async (req, res = response) => {
 
     //path para guardar la imagen
     const savePath = `./uploads/${tipo}/${nombreArchivo}`;
-    // fs.mkdirSync(path.dirname(savePath), { recursive: true });
+    fs.mkdirSync(path.dirname(savePath), { recursive: true });
 
-
+    
     //mover la imagen
     file.mv(savePath, async (err) => {
-        // if (err) {
-        //     // console.log(err)
-        //     return res.status(500).json({
-        //         ok: false,
-        //         msg: 'Error al mover la imagen'
-        //     });
-        // }
+        if (err) {
+            // console.log(err)
+            return res.status(500).json({
+                ok: false,
+                msg: 'Error al mover la imagen'
+            });
+        }
         // subir a Cloudinary
         try {
             const result = await cloudinary.uploader.upload(savePath, {
