@@ -3,8 +3,15 @@ const fs = require('fs');
 const { response } = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { actualizarImagen } = require('../helpers/actualizar-imagen');
+const cloudinary = require('cloudinary').v2;
 
-const fileUpload = (req, res = response) => {
+// configurar cloudinary
+cloudinary.config({
+    api_key: process.env.API_KEY_CLOUDINARY,
+    api_secret: process.env.API_SECRET_CLOUDINARY,
+    cloud_name: process.env.CLOUD_NAME
+})
+const fileUpload = async (req, res = response) => {
 
     const tipo = req.params.tipo;
     const id = req.params.id;
@@ -44,14 +51,38 @@ const fileUpload = (req, res = response) => {
 
     //path para guardar la imagen
     const path = `./uploads/${tipo}/${nombreArchivo}`;
+    fs.mkdirSync(path.dirname(savePath), { recursive: true });
+
 
     //mover la imagen
-    file.mv(path, (err) => {
+    file.mv(path, async (err) => {
         if (err) {
             // console.log(err)
             return res.status(500).json({
                 ok: false,
                 msg: 'Error al mover la imagen'
+            });
+        }
+        // subir a Cloudinary
+        try {
+            const result = await cloudinary.uploader.upload(savePath, {
+                folder: `articlesApp/uploads/${tipo}/`
+            });
+            console.log(result);
+
+            //actualizar bd
+            actualizarImagen(tipo, id, nombreArchivo);
+
+            res.json({
+                ok: true,
+                msg: 'Archivo subido',
+                nombreArchivo
+            });
+        } catch (error) {
+            return res.status(500).json({
+                ok: false,
+                msg: 'Error al subir la imagen a Cloudinary',
+                error: error.message
             });
         }
 
