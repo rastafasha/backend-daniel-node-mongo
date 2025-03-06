@@ -16,7 +16,11 @@ const fileUpload = async (req, res = response) => {
     const tipo = req.params.tipo;
     const id = req.params.id;
 
-    const tiposValidos = ['profiles', 'blogs', 'pagos', 'banners', 'binancepays', 'sideadvertisings'];
+    const tiposValidos = [
+        'profiles', 'blogs', 'pagos', 
+        'banners', 'binancepays', 
+        'sideadvertisings'];
+
     if (!tiposValidos.includes(tipo)) {
         return res.status(400).json({
             ok: false,
@@ -96,7 +100,12 @@ const retornaImagen = (req, res) => {
     const foto = req.params.foto;
 
     const pathImg = path.join(__dirname, `../../uploads/${tipo}/${foto}`);
-
+    //traigo la foto desde cloudinary
+    const urlImg = cloudinary.url(foto, {
+        width: 300,
+        height: 300,
+        crop: 'fill'
+    });
     //imagen por defecto
     if (fs.existsSync(pathImg)) {
         res.sendFile(pathImg);
