@@ -14,7 +14,7 @@ const borrarImagen = (path) => {
 }
 
 
-const actualizarImagen = async(tipo, id, nombreArchivo) => {
+const actualizarImagen = async(tipo, id, nombreArchivo, extensionArchivo) => {
     try {
         const mapTipo = {
             'profiles': await Profile.findById(id),
@@ -33,7 +33,8 @@ const actualizarImagen = async(tipo, id, nombreArchivo) => {
             //borrar la imagen si existe
             fs.unlinkSync(path)
         }
-        resultadoColeccion.img = nombreArchivo;
+        resultadoColeccion.img = `${nombreArchivo}`; // Update the image name with concatenation
+        resultadoColeccion.extension = extensionArchivo; // Store the file extension
         await resultadoColeccion.save();
         return true;
 

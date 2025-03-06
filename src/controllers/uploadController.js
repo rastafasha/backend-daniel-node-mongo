@@ -75,7 +75,8 @@ const fileUpload = async (req, res = response) => {
             console.log(result);
 
             //actualizar bd
-            actualizarImagen(tipo, id, nombreArchivo);
+            actualizarImagen(tipo, id, `${result.secure_url}` ); // Use the public ID from Cloudinary and the file extension
+            // actualizarImagen(tipo, id, `${result.display_name}.${extensionArchivo}` ); // Use the public ID from Cloudinary and the file extension
 
             res.json({
                 ok: true,
