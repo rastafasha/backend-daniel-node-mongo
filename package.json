@@ -5,7 +5,10 @@
     "main": "index.js",
     "scripts": {
         "start:dev": "nodemon index.js",
-        "start": "node index.js"
+        "start": "node index.js",
+        "seed:blog": "node src/seeders/blogSeeder.js",
+        "seed:categoria": "node src/seeders/categoriaSeeder.js",
+        "seed:usuario": "node src/seeders/usuarioSeeder.js"
     },
     "keywords": [],
     "author": "",

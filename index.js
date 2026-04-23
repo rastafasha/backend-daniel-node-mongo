@@ -29,7 +29,7 @@ const server = require('http').Server(app);
 //cors
 // Initialize socket.io with the server
 const allowedOrigins = [
-  "http://localhost:4207",
+  "http://localhost:4200",
   "http://localhost:4203",
   "https://malcolmcordova.com/article-shop",
   "https://malcolmcordova.com/admin-node-articles-shop",
@@ -82,7 +82,6 @@ app.use('/api/videos', require('./src/routes/video'));
 app.use('/api/favoritos', require('./src/routes/favorito'));
 
 app.use('/api/paypal', require('./src/routes/paypal'));
-app.use('/api/binancepay', require('./src/routes/binancepay'));
 app.use('/api/planpaypal', require('./src/routes/planpaypal'));
 app.use('/api/subcriptionpaypal', require('./src/routes/subcripcionpaypaldb'));
 app.use('/api/sideadvices', require('./src/routes/sideadvice'));
@@ -91,32 +90,6 @@ app.use('/api/sideadvices', require('./src/routes/sideadvice'));
 //rutas
 
 
-//storage
-const axios = require('axios');
-TOKEN_VERCEL_STORAGE = '1290b16d-703d-4b01-9916-5fcd2906d708';
-
-async function middleware(req, res) {
-  try {
-    const response = await axios.get(`https://api.vercel.com/v1/edge-config?slug=backend-daniel-node-mongo-storag`, {
-      headers: {
-        Authorization: `Bearer ${TOKEN_VERCEL_STORAGE}`,
-        'Content-Type': 'application/json',
-      },
-      timeout: 5000 // agregar un timeout de 5 segundos
-    });
-
-    const greeting = response.data;
-
-    res.json(greeting);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error al obtener la configuración' });
-  }
-}
-
-// Para usar la función middleware en Node.js, puedes agregarla a una ruta en tu servidor
-app.get('/storage', middleware);
-//fin storage
 
 //test
 app.get("/", (req, res) => {

@@ -21,7 +21,7 @@ const fileUpload = async (req, res = response) => {
     // 1. Validar tipos de carpetas/colecciones
     const tiposValidos = [
         'profiles', 'blogs', 'pagos', 
-        'banners', 'binancepays', 
+        'banners',
         'sideadvertisings'
     ];
     

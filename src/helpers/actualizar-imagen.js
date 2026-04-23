@@ -4,7 +4,6 @@ const Profile = require('../models/profile');
 const Blog = require('../models/blog');
 const Sideadvertising = require('../models/sideadvice');
 const Banner = require('../models/banner');
-const Binancepay = require('../models/binancepay');
 
 const borrarImagen = (path) => {
 
@@ -22,7 +21,6 @@ const actualizarImagen = async(tipo, id, nombreArchivo, extensionArchivo) => {
             'blogs': await Blog.findById(id),
             'sideadvertisings': await Sideadvertising.findById(id),
             'banners': await Banner.findById(id),
-            'binancepays': await Binancepay.findById(id),
         }
         const resultadoColeccion = mapTipo[tipo];
         if (resultadoColeccion.length == 0) {
