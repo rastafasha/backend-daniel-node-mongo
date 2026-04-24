@@ -9,7 +9,6 @@ var PagoSchema = Schema({
     // plan: { type: Schema.Types.ObjectId, ref: 'Plan' },
     blog: { type: Array },
     subcriptionPaypal: { type: Schema.Types.ObjectId, ref: 'Subcriptionpaypal' },
-    binancepay: { type: Schema.Types.ObjectId, ref: 'Binancepay' },
     status: { type: String, required: false, default: 'PENDING' },
     validacion: { type: String, required: false, default: 'PENDING' },
     createdAt: { type: Date, default: Date.now, required: true },

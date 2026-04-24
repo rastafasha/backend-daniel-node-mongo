@@ -13,14 +13,13 @@ const nodemailer = require("nodemailer");
 const process = require("process");
 const fs = require("fs");
 const os = require("os");
-//cronjobs 
 
 
 //crear server de express
 const app = express();
-
 const server = require('http').Server(app);
 
+//cronjobs 
 // const { testing } = require('./testing');
 //cron jobs
 // const { crons } = require('./src/cronjobs/cronjobs');

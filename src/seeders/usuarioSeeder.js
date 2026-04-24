@@ -4,6 +4,7 @@ const Usuario = require('../models/usuario');
 const bcryptjs = require('bcryptjs');
 
 const SUPERADMIN_ID = '6509d14bb94908df43a2b5ef';
+const EDITOR_ID = '69eaab0919ab9e7948b4bcc1';
 
 const usuariosData = [
     {
@@ -56,6 +57,7 @@ const usuariosData = [
         updatedAt: new Date('2024-01-04T08:00:00Z')
     },
     {
+        _id: EDITOR_ID,
         username: 'Carlos',
         email: 'carlos@editor.com',
         password: 'password',
