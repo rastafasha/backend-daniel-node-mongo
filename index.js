@@ -30,8 +30,8 @@ const server = require('http').Server(app);
 const allowedOrigins = [
   "http://localhost:4200",
   "http://localhost:4203",
-  "https://malcolmcordova.com/article-shop",
-  "https://malcolmcordova.com/admin-node-articles-shop",
+  "https://articlesapp-jade.vercel.app",
+  "https://admin-artilces.vercel.app",
 ];
 
 // Configuración compartida
