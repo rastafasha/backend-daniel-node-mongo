@@ -181,20 +181,24 @@ const borrarProfile = async(req, res) => {
 
 const listarProfilePorUsuario = (req, res) => {
     var id = req.params['id'];
-    Profile.find({ usuario: id }, (err, profile_data) => {
+    
+    // Cambiamos .find por .findOne para recibir un objeto, no un array
+    Profile.findOne({ usuario: id }, (err, profile_data) => {
         if (!err) {
             if (profile_data) {
+                // Ahora profile_data es un objeto { _id: "...", first_name: "..." }
                 res.status(200).send({ profile: profile_data });
             } else {
-                res.status(500).send({ error: err });
+                res.status(404).send({ message: 'No se encontró el perfil' });
             }
         } else {
             res.status(500).send({ error: err });
         }
     }).populate('usuario')
-    .populate('subcription')
-    .populate('blog');
+      .populate('subcription')
+      .populate('blog');
 }
+
 
 
 
