@@ -104,8 +104,8 @@ const generateSubscription = (req, res) => {
             },
             email_address: body.email_address,
         },
-        return_url: 'http://localhost/gracias',
-        cancel_url: 'http://localhost/fallo'
+        return_url: process.env.GRACIAS_URL,
+        cancel_url: process.env.FALLO_URL
 
     }
     request.post(`${PAYPAL_API}/v1/billing/subscriptions`, {
@@ -133,11 +133,11 @@ const createPayment = (req, res) => {
             }
         }],
         application_context: {
-            brand_name: 'tu-empresa.com',
+            brand_name: process.env.BRAND_NAME, //nombre de la empresa
             landing_page: 'NO_PREFERENCE', //default, para mas informacion https://developer.paypal.com/doc/api
             user_action: 'PAY_NOW', //accion para que en paypal muestre el monto del pago
-            return_url: 'http://localhost:3000/execute-payment', //url despues de realizar el pago
-            cancel_url: 'http://localhost:3000/cancel-payment', //url despues de ralizar el pago
+            return_url: process.env.RETURN_URL, //url despues de realizar el pago
+            cancel_url: process.env.CANCEL_URL, //url despues de ralizar el pago
 
         }
     };
