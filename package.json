@@ -8,7 +8,8 @@
         "start": "node index.js",
         "seed:blog": "node src/seeders/blogSeeder.js",
         "seed:categoria": "node src/seeders/categoriaSeeder.js",
-        "seed:usuario": "node src/seeders/usuarioSeeder.js"
+        "seed:usuario": "node src/seeders/usuarioSeeder.js",
+        "seed:pais": "node src/seeders/paisSeeder.js"
     },
     "keywords": [],
     "author": "",

@@ -84,6 +84,7 @@ app.use('/api/paypal', require('./src/routes/paypal'));
 app.use('/api/planpaypal', require('./src/routes/planpaypal'));
 app.use('/api/subcriptionpaypal', require('./src/routes/subcripcionpaypaldb'));
 app.use('/api/sideadvices', require('./src/routes/sideadvice'));
+app.use('/api/paises', require('./src/routes/pais'));
 
 
 //rutas

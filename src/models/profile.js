@@ -6,7 +6,7 @@ const profileSchema = Schema({
     first_name: { type: String, require: true },
     last_name: { type: String, require: true },
     img: { type: String, require: false },
-    pais: { type: String, require: false },
+    pais: { type: String, require: false, ref: 'Pais' },
     estado: { type: String, require: false },
     ciudad: { type: String, require: false },
     telhome: { type: String, require: false },
