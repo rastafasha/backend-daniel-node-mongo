@@ -13,6 +13,19 @@ const getCategorias = async(req, res) => {
     });
 };
 
+// const getCategorias = async(req, res) => {
+//     // Traemos las categorías
+//     const categorias = await Categoria.find().populate('blog');
+
+//     // Filtramos para dejar solo las que tienen blogs relacionados
+//     const categoriasUsadas = categorias.filter(cat => cat.blog && cat.blog.length > 0);
+
+//     res.json({
+//         ok: true,
+//         categorias: categoriasUsadas
+//     });
+// };
+
 
 const getCategoriasList = async(req, res) => {
 

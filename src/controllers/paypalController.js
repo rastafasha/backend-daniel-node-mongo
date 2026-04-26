@@ -202,31 +202,24 @@ const updatePlan = (req, res) => {
     });
 };
 
-const planpage = (req, res) => {
-    const { body } = req;
-    paginaPost = 0;
-    const paginaPost = req.params.id;
-    request.get(`${PAYPAL_API}/v1/billing/plans?page_size=10&page=${paginaPost}`, {
+const getPlanesPorPagina = (req, res) => {
+    // Obtenemos la página de los parámetros de la URL (ej: /planes?page=2)
+    // Si no envían página, por defecto será la 1
+    const pagina = req.query.page || 1;
+    const tamanoPagina = 10;
+
+    request.get(`${PAYPAL_API}/v1/billing/plans?page_size=${tamanoPagina}&page=${pagina}`, {
         auth,
-        body: {},
         json: true
     }, (err, response) => {
-        res.json({ planPaypal: response.body });
+        if (err) {
+            return res.status(500).json({ error: "Error al conectar con PayPal" });
+        }
+        res.json({ 
+            planPaypal: response.body 
+        });
     });
 };
-
-
-const planpage2 = (req, res) => {
-    const { body } = req;
-    request.get(`${PAYPAL_API}/v1/billing/plans?page_size=10&page=2`, {
-        auth,
-        body: {},
-        json: true
-    }, (err, response) => {
-        res.json({ planPaypal: response.body });
-    });
-};
-
 
 
 const activatePlan = (req, res) => {
@@ -289,38 +282,23 @@ const updatePproduct = (req, res) => {
 };
 
 
+const getProductsByPage = (req, res) => {
+    // Leemos la página desde la URL: /productos?page=2
+    // Si no viene ninguna, usamos la 1 por defecto
+    const page = req.query.page || 1;
+    const pageSize = 10;
 
-const page2 = (req, res) => {
-    const { body } = req;
-    request.get(`${PAYPAL_API}/v1/catalogs/products?page_size=10&page=2`, {
+    request.get(`${PAYPAL_API}/v1/catalogs/products?page_size=${pageSize}&page=${page}&total_required=true`, {
         auth,
-        body: {},
         json: true
     }, (err, response) => {
+        if (err) {
+            return res.status(500).json({ ok: false, error: err });
+        }
         res.json({ productPaypal: response.body });
     });
 };
 
-const page4 = (req, res) => {
-    const { body } = req;
-    request.get(`${PAYPAL_API}/v1/catalogs/products?page_size=10&page=4`, {
-        auth,
-        body: {},
-        json: true
-    }, (err, response) => {
-        res.json({ productPaypal: response.body });
-    });
-};
-const page3 = (req, res) => {
-    const { body } = req;
-    request.get(`${PAYPAL_API}/v1/catalogs/products?page_size=10&page=3`, {
-        auth,
-        body: {},
-        json: true
-    }, (err, response) => {
-        res.json({ productPaypal: response.body });
-    });
-};
 
 //subcriptions
 const getSubcriptions = (req, res) => {
@@ -365,11 +343,8 @@ module.exports = {
     updatePlan,
     activatePlan,
     desactivatePlan,
-    planpage,
-    planpage2,
-    page2,
-    page3,
-    page4,
+    getPlanesPorPagina,
+    getProductsByPage,
     getSubcriptions,
     getSubcriptionbyId
 };

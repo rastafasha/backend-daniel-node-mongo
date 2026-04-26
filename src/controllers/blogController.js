@@ -3,12 +3,12 @@ const Blog = require('../models/blog');
 const Categoria = require('../models/categoria');
 
 
-const getBlogs = async(req, res) => {
+const getBlogs = async (req, res) => {
 
     const blogs = await Blog.find({})
-    .populate('usuario')
-    .populate('pago')
-    .populate('categoria');
+        .populate('usuario')
+        .populate('pago')
+        .populate('categoria');
 
     res.json({
         ok: true,
@@ -16,15 +16,15 @@ const getBlogs = async(req, res) => {
     });
 };
 
-const getBlog = async(req, res) => {
+const getBlog = async (req, res) => {
 
     const id = req.params.id;
     const uid = req.uid;
 
     Blog.findById(id, {})
-    .populate('usuario')
-    .populate('pago')
-    .populate('categoria')
+        .populate('usuario')
+        .populate('pago')
+        .populate('categoria')
         .exec((err, blog) => {
             if (err) {
                 return res.status(500).json({
@@ -49,12 +49,34 @@ const getBlog = async(req, res) => {
 
 };
 
-const crearBlog = async(req, res) => {
+const crearBlog = async (req, res) => {
 
     const uid = req.uid;
+
+    // Convertir el título en slug
+    const name = req.body.name || '';
+    const slug = name.toLowerCase()
+        .trim()
+        .replace(/[\s]+/g, '-') // reemplaza espacios por guiones
+        .replace(/[^\w\-]+/g, '') // elimina caracteres no alfanuméricos excepto guiones
+        .replace(/\-\-+/g, '-') // reemplaza guiones múltiples por uno solo
+        // reemplaza acentos y caracteres especiales
+        .replace(/á/g, 'a')
+        .replace(/é/g, 'e')
+        .replace(/í/g, 'i')
+        .replace(/ó/g, 'o')
+        .replace(/ú/g, 'u')
+        .replace(/ñ/g, 'n')
+        .replace(/ü/g, 'u');
+    const short_descripcion = req.body.introhome || '';
+    //extraemos short_descripcion desde description con un liminte de caracteres de 100
+    const short_descripcion_limit = short_descripcion.substring(0, 100);
+
     const blog = new Blog({
         usuario: uid,
-        ...req.body
+        ...req.body,
+        slug: slug,
+        short_descripcion: short_descripcion_limit
     });
 
     try {
@@ -67,7 +89,7 @@ const crearBlog = async(req, res) => {
         });
 
     } catch (error) {
-        console.log(error);
+        // console.log(error);
         res.status(500).json({
             ok: false,
             msg: 'Hable con el admin'
@@ -77,7 +99,7 @@ const crearBlog = async(req, res) => {
 
 };
 
-const actualizarBlog = async(req, res) => {
+const actualizarBlog = async (req, res) => {
 
     const id = req.params.id;
     const uid = req.uid;
@@ -95,6 +117,31 @@ const actualizarBlog = async(req, res) => {
         const cambiosBlog = {
             ...req.body,
             usuario: uid
+        }
+
+        // Si viene el título actualizado, actualizar el slug
+        if (req.body.titulo) {
+            const name = req.body.name;
+            const slug = name.toLowerCase()
+                .trim()
+                .replace(/[\s]+/g, '-') // reemplaza espacios por guiones
+                .replace(/[^\w\-]+/g, '') // elimina caracteres no alfanuméricos excepto guiones
+                .replace(/\-\-+/g, '-') // reemplaza guiones múltiples por uno solo
+                // reemplaza acentos y caracteres especiales
+                .replace(/á/g, 'a')
+                .replace(/é/g, 'e')
+                .replace(/í/g, 'i')
+                .replace(/ó/g, 'o')
+                .replace(/ú/g, 'u')
+                .replace(/ñ/g, 'n')
+                .replace(/ü/g, 'u');
+            cambiosBlog.slug = slug;
+        }
+
+        if (req.body.introhome) {
+            const short_descripcion = req.body.introhome || '';
+            const short_descripcion_limit = short_descripcion.substring(0, 100);
+            cambiosBlog.short_descripcion = short_descripcion_limit;
         }
 
         const blogActualizado = await Blog.findByIdAndUpdate(id, cambiosBlog, { new: true });
@@ -115,7 +162,8 @@ const actualizarBlog = async(req, res) => {
 
 };
 
-const borrarBlog = async(req, res) => {
+
+const borrarBlog = async (req, res) => {
 
     const id = req.params.id;
 
@@ -179,7 +227,7 @@ function activar(req, res) {
 
 function destacados(req, res) {
 
-    Blog.find({  isFeatured: ['true'] }).populate('categoria').exec((err, blog_data) => {
+    Blog.find({ isFeatured: ['true'] }).populate('categoria').exec((err, blog_data) => {
         if (err) {
             res.status(500).send({ message: 'Ocurrió un error en el servidor.' });
         } else {
@@ -194,7 +242,7 @@ function destacados(req, res) {
 
 function activos(req, res) {
 
-    Blog.find({  status: ['Activo'] }).populate('categoria').exec((err, blog_data) => {
+    Blog.find({ status: ['Activo'] }).populate('categoria').exec((err, blog_data) => {
         if (err) {
             res.status(500).send({ message: 'Ocurrió un error en el servidor.' });
         } else {
@@ -210,14 +258,14 @@ function activos(req, res) {
 
 
 function listar_newest(req, res) {
-    Blog.find({  status: ['Activo'] })
-    .populate('usuario')
-    .populate('categoria')
-    .sort({ createdAt: -1 }).limit(4).exec((err, data) => {
-        if (data) {
-            res.status(200).send({ blogs: data });
-        }
-    });
+    Blog.find({ status: ['Activo'] })
+        .populate('usuario')
+        .populate('categoria')
+        .sort({ createdAt: -1 }).limit(4).exec((err, data) => {
+            if (data) {
+                res.status(200).send({ blogs: data });
+            }
+        });
 }
 
 
@@ -226,20 +274,20 @@ function find_by_slug(req, res) {
     var slug = req.params['slug'];
 
     Blog.findOne({ slug: slug })
-    .populate('usuario')
-    .populate('categoria')
-    .populate('pago')
-    .exec((err, blog_data) => {
-        if (err) {
-            res.status(500).send({ message: 'Ocurrió un error en el servidor.' });
-        } else {
-            if (blog_data) {
-                res.status(200).send({ blog: blog_data });
+        .populate('usuario')
+        .populate('categoria')
+        .populate('pago')
+        .exec((err, blog_data) => {
+            if (err) {
+                res.status(500).send({ message: 'Ocurrió un error en el servidor.' });
             } else {
-                res.status(500).send({ message: 'No se encontró ningun dato en esta sección.' });
+                if (blog_data) {
+                    res.status(200).send({ blog: blog_data });
+                } else {
+                    res.status(500).send({ message: 'No se encontró ningun dato en esta sección.' });
+                }
             }
-        }
-    });
+        });
 }
 
 const listarBlogPorUsuario = (req, res) => {
@@ -280,7 +328,7 @@ const listar_best_sellers = (req, res) => {
     });
 }
 
-const cat_by_name = async(req, res) => {
+const cat_by_name = async (req, res) => {
 
 
     await Blog.find({}, 'categoria').filter('categoria', 'nombre').populate('name').exec((err, blog_data) => {
