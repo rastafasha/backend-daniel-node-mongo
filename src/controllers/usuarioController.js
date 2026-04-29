@@ -203,7 +203,7 @@ const getUsuario = async(req, res = response) => {
     try {
 
         const usuario = await Usuario.findById(id)
-            .populate('profile', 'first_name last_name pais estado ciudad telhome')
+            .populate('username email role terminos google')
 
         res.json({
             ok: true,

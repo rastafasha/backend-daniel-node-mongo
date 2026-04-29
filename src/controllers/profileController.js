@@ -2,7 +2,7 @@ const { response } = require('express');
 const Profile = require('../models/profile');
 const Subcriptionpaypal = require('../models/subcriptionPaypal');
 
-const crearProfile = async(req, res) => {
+const crearProfile = async (req, res) => {
 
     const uid = req.uid;
     const profile = new Profile({
@@ -30,7 +30,7 @@ const crearProfile = async(req, res) => {
 
 };
 
-const actualizarProfile = async(req, res) => {
+const actualizarProfile = async (req, res) => {
 
     const id = req.params.id;
     const uid = req.uid;
@@ -68,13 +68,9 @@ const actualizarProfile = async(req, res) => {
 
 };
 
-const getProfiles = async(req, res) => {
+const getProfiles = async (req, res) => {
 
     const profiles = await Profile.find()
-        .populate('blog')
-        .populate('pagos')
-        .populate('subcription')
-        .populate('usuario')
 
     res.json({
         ok: true,
@@ -82,45 +78,11 @@ const getProfiles = async(req, res) => {
     });
 };
 
-const getProfilesrole = async(req, res) => {
-
-    // const profiles = await Profile.find({ role: 'EDITOR' })
-    //     .populate('usuario', 'role editor');
-
-    // res.json({
-    //     ok: true,
-    //     profiles
-    // });
-
-     Profile.find(
-
-        // {
-        //     where: {
-        //         role: 'EDITOR'
-        //     }
-        // }
-     )
-    .populate('usuario', 'username role email')
-    .populate('blog')
-    .exec((err, profiles) => {
-        if (err) {
-            res.status(500).send({ message: 'Ocurrió un error en el servidor.' });
-        } else {
-            if (profiles) {
-                res.status(200).send({ profiles: profiles });
-            } else {
-                res.status(500).send({ message: 'No se encontró ningun dato en esta sección.' });
-            }
-        }
-    });
-
-};
 
 
-const getProfile = async(req, res) => {
+const getProfile = async (req, res) => {
 
     const id = req.params.id;
-
     Profile.findById(id)
         .populate('usuario')
         .exec((err, profile) => {
@@ -149,8 +111,7 @@ const getProfile = async(req, res) => {
 
 
 
-
-const borrarProfile = async(req, res) => {
+const borrarProfile = async (req, res) => {
 
     const id = req.params.id;
 
@@ -179,25 +140,30 @@ const borrarProfile = async(req, res) => {
     }
 };
 
-const listarProfilePorUsuario = (req, res) => {
-    var id = req.params['id'];
-    
-    // Cambiamos .find por .findOne para recibir un objeto, no un array
-    Profile.findOne({ usuario: id }, (err, profile_data) => {
-        if (!err) {
-            if (profile_data) {
-                // Ahora profile_data es un objeto { _id: "...", first_name: "..." }
-                res.status(200).send({ profile: profile_data });
-            } else {
-                res.status(404).send({ message: 'No se encontró el perfil' });
-            }
-        } else {
-            res.status(500).send({ error: err });
+const listarProfilePorUsuario = async (req, res) => {
+    try {
+        const profile_data = await Profile.findOne({ usuario: req.params.id })
+            .populate('usuario')
+            .populate('subcription')
+            .populate({
+                path: 'favoritos',
+                populate: {
+                    path: 'blog', // Esto trae los datos del blog dentro del favorito
+                    model: 'Blog'
+                }
+            })
+            .populate('pagos')
+            .populate('blog');
+
+        if (!profile_data) {
+            return res.status(404).send({ message: 'No se encontró el perfil' });
         }
-    }).populate('usuario')
-      .populate('subcription')
-      .populate('blog');
-}
+
+        res.status(200).send({ profile: profile_data });
+    } catch (err) {
+        res.status(500).send({ error: err });
+    }
+};
 
 
 
@@ -209,7 +175,6 @@ module.exports = {
     actualizarProfile,
     borrarProfile,
     listarProfilePorUsuario,
-    getProfilesrole
 
 
 };

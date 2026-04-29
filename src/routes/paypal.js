@@ -22,7 +22,8 @@
     getProductsByPage,
     getPlanesPorPagina,
     getSubcriptions,
-    getSubcriptionbyId
+    getSubcriptionbyId,
+    borrarProduct
  } = require('../controllers/paypalController');
  const { validarJWT } = require('../middlewares/validar-jwt');
  
@@ -48,7 +49,7 @@ router.get('/products-paypal', getProductsByPage);
  router.patch('/desactivar-plan/:id', desactivatePlan);
 
  router.get('/execute-payment', executePayment);
- 
+ router.delete('/productborrar/:id', borrarProduct);
 
  
  module.exports = router;

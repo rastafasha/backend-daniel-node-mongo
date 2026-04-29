@@ -12,7 +12,6 @@ const {
     actualizarProfile,
     borrarProfile,
     listarProfilePorUsuario,
-    getProfilesrole
 } = require('../controllers/profileController');
 
 const {
@@ -22,7 +21,6 @@ const {
 
 
 router.get('/all/', validarJWT, getProfiles);
-router.get('/editores', getProfilesrole);
 router.get('/:id', [validarJWT], getProfile);
 router.delete('/borrar/:id', [validarJWT, ], borrarProfile);
 router.get('/user_profile/:id', listarProfilePorUsuario);

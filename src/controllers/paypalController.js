@@ -1,5 +1,5 @@
 const request = require('request');
-
+const PaypalPlan = require('../models/paypalPlan');
 
 const CLIENT = process.env.CLIENT;
 const SECRET = process.env.SECRET;
@@ -327,6 +327,37 @@ const getSubcriptionbyId = (req, res) => {
     });
 };
 
+const borrarProduct = async (req, res) => {
+
+    const id = req.params.id;
+
+    try {
+
+        const product = await PaypalPlan.findById(id);
+        if (!product) {
+            return res.status(500).json({
+                ok: false,
+                msg: 'product no encontrado por el id'
+            });
+        }
+
+        await PaypalPlan.findByIdAndDelete(id);
+
+        res.json({
+            ok: true,
+            msg: 'product eliminado'
+        });
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
+            ok: false,
+            msg: 'Error hable con el admin'
+        });
+    }
+};
+
+
 
 
 module.exports = {
@@ -346,5 +377,6 @@ module.exports = {
     getPlanesPorPagina,
     getProductsByPage,
     getSubcriptions,
-    getSubcriptionbyId
+    getSubcriptionbyId,
+    borrarProduct
 };

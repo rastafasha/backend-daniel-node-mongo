@@ -14,7 +14,7 @@ var SubcriptionPaypalSchema = Schema({
     create_time: { type: Date, required: false },
     createdAt: { type: Date, default: Date.now, required: true },
     updatedAt: { type: Date, default: Date.now, required: true }
-}, { collection: 'Subcriptionpaypal' });
+}, { collection: 'subcriptions' });
 
 
 

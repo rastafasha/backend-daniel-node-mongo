@@ -36,7 +36,9 @@ router.get('/', validarJWT, getUsuariosList);
 router.get('/recientes', newest);
 router.get('/all', validarJWT, getAllUsers);
 router.get('/editores', getAllEditores);
-router.get('/:id', [validarJWT], getUsuario);
+router.get('/:id', 
+    // [validarJWT], 
+    getUsuario);
 router.get('/user_profile/:id', listarProfileUsuario);
 router.delete('/delete/:id', [validarJWT], borrarUsuario);
 
