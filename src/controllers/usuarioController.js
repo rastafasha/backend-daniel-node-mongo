@@ -184,11 +184,7 @@ const getAllUsers = async(req, res) => {
     //     ok: true,
     //     usuarios
     // });
-    const usuarios = await Usuario.find({})
-        .populate('pago')
-        .populate('blog')
-        .populate('subcription')
-        .populate('profile');
+    const usuarios = await Usuario.find({});
 
     res.json({
         ok: true,
