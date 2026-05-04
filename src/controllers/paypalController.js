@@ -450,19 +450,22 @@ const getSubcriptionbyId = (req, res) => {
 
 const borrarProduct = async (req, res) => {
 
-    const id = req.params.id; 
-    try {
-        // Si el id que envías es el de Mongo (_id)
-        const product = await PaypalPlan.findByIdAndDelete(id);
-        
-        if (!product) {
-            return res.status(404).json({ ok: false, msg: 'Producto no encontrado' });
+   const id = req.params.id;
+    const data = [
+        {
+            op: "replace",
+            path: "/name",
+            value: "OBSOLETO - " + req.body.name // Le cambias el nombre para identificarlo
         }
+    ];
 
-        res.json({ ok: true, msg: 'Referencia eliminada de la base de datos local' });
-    } catch (error) {
-        res.status(500).json({ ok: false, msg: 'Error al eliminar' });
-    }
+    request.patch(`${PAYPAL_API}/v1/catalogs/products/${id}`, { 
+        auth, 
+        body: data, 
+        json: true 
+    }, (err, response) => {
+        res.json({ ok: true, msg: "Producto marcado como obsoleto" });
+    });
 };
 
 
