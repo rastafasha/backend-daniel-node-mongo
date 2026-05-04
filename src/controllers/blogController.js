@@ -226,18 +226,32 @@ function activar(req, res) {
 }
 
 function destacados(req, res) {
+ // 1. Obtenemos la página de la URL (ej: /recientes?page=2). 
+    // Si no viene nada, por defecto es la 1.
+    const page = parseInt(req.query.page) || 1;
+    const limit = 4; // Tu límite actual
+    const skip = (page - 1) * limit; // Cuántos posts saltar
 
-    Blog.find({ isFeatured: ['true'] }).populate('categoria').exec((err, blog_data) => {
-        if (err) {
-            res.status(500).send({ message: 'Ocurrió un error en el servidor.' });
-        } else {
-            if (blog_data) {
-                res.status(200).send({ blogs: blog_data });
-            } else {
-                res.status(500).send({ message: 'No se encontró ningun dato en esta sección.' });
+    Blog.find({ isFeatured: ['true'] })
+        .populate('usuario', 'email uid username')
+        .populate('categoria', 'nombre _id')
+        .skip(skip)   // <-- Nos saltamos los ya cargados
+        .limit(limit) // <-- Traemos los siguientes 4
+        .exec((err, data) => {
+            if (err) {
+                return res.status(500).send({ ok: false, message: 'Error en el servidor' });
             }
-        }
-    });
+            
+            if (data) {
+                // Es buena práctica enviar 'ok: true' para que coincida con tu map del frontend
+                res.status(200).send({ 
+                    ok: true,
+                    blogs: data 
+                });
+            } else {
+                res.status(404).send({ ok: false, blogs: [] });
+            }
+        });
 }
 
 function activos(req, res) {
@@ -257,10 +271,41 @@ function activos(req, res) {
 
 
 
+function listar_newestPaginados(req, res) {
+    // 1. Obtenemos la página de la URL (ej: /recientes?page=2). 
+    // Si no viene nada, por defecto es la 1.
+    const page = parseInt(req.query.page) || 1;
+    const limit = 4; // Tu límite actual
+    const skip = (page - 1) * limit; // Cuántos posts saltar
+
+    Blog.find({ status: ['Activo'] })
+        .populate('usuario', 'email uid username')
+        .populate('categoria', 'nombre _id')
+        .sort({ createdAt: -1 })
+        .skip(skip)   // <-- Nos saltamos los ya cargados
+        .limit(limit) // <-- Traemos los siguientes 4
+        .exec((err, data) => {
+            if (err) {
+                return res.status(500).send({ ok: false, message: 'Error en el servidor' });
+            }
+            
+            if (data) {
+                // Es buena práctica enviar 'ok: true' para que coincida con tu map del frontend
+                res.status(200).send({ 
+                    ok: true,
+                    blogs: data 
+                });
+            } else {
+                res.status(404).send({ ok: false, blogs: [] });
+            }
+        });
+}
+
+
 function listar_newest(req, res) {
     Blog.find({ status: ['Activo'] })
-        .populate('usuario')
-        .populate('categoria')
+        .populate('usuario', 'email uid username')
+        .populate('categoria', 'nombre _id')
         .sort({ createdAt: -1 }).limit(4).exec((err, data) => {
             if (data) {
                 res.status(200).send({ blogs: data });
@@ -274,8 +319,8 @@ function find_by_slug(req, res) {
     var slug = req.params['slug'];
 
     Blog.findOne({ slug: slug })
-        .populate('usuario')
-        .populate('categoria')
+        .populate('usuario', 'email uid username')
+        .populate('categoria', 'nombre _id')
         .populate('pago')
         .exec((err, blog_data) => {
             if (err) {
@@ -306,17 +351,35 @@ const listarBlogPorUsuario = (req, res) => {
 }
 const listarBlogPorCategoria = (req, res) => {
     var nombre = req.params['nombre'];
-    Blog.find({ categoria: nombre }, (err, blog_data) => {
-        if (!err) {
-            if (blog_data) {
-                res.status(200).send({ blogs: blog_data });
-            } else {
-                res.status(500).send({ error: err });
+    // 1. Obtenemos la página de la URL (ej: /recientes?page=2). 
+    // Si no viene nada, por defecto es la 1.
+    const page = parseInt(req.query.page) || 1;
+    const limit = 4; // Tu límite actual
+    const skip = (page - 1) * limit; // Cuántos posts saltar
+
+    Blog.find({ categoria: nombre })
+        .populate('usuario', 'email uid username')
+        .populate('categoria', 'nombre _id')
+        .sort({ createdAt: -1 })
+        .skip(skip)   // <-- Nos saltamos los ya cargados
+        .limit(limit) // <-- Traemos los siguientes 4
+        .exec((err, data) => {
+            if (err) {
+                return res.status(500).send({ ok: false, message: 'Error en el servidor' });
             }
-        } else {
-            res.status(500).send({ error: err });
-        }
-    });
+            
+            if (data) {
+                // Es buena práctica enviar 'ok: true' para que coincida con tu map del frontend
+                res.status(200).send({ 
+                    ok: true,
+                    blogs: data 
+                });
+            } else {
+                res.status(404).send({ ok: false, blogs: [] });
+            }
+        });
+
+
 }
 
 
@@ -376,6 +439,7 @@ module.exports = {
     destacados,
     find_by_slug,
     listar_newest,
+    listar_newestPaginados,
     listarBlogPorUsuario,
     listarBlogPorCategoria,
     listar_best_sellers,

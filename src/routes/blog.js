@@ -20,7 +20,8 @@ const {
     listarBlogPorCategoria,
     listar_best_sellers,
     cat_by_name,
-    aumentar_venta
+    aumentar_venta,
+    listar_newestPaginados
 
 } = require('../controllers/blogController');
 const { validarJWT } = require('../middlewares/validar-jwt');
@@ -32,6 +33,7 @@ router.get('/destacados', destacados);
 router.get('/activos', activos);
 router.get('/find_by_slug/:slug', find_by_slug);
 router.get('/recientes', listar_newest);
+router.get('/recientes_paginados', listar_newestPaginados);
 router.get('/user_blog/:id', listarBlogPorUsuario);
 router.get('/blog_categoria/:nombre', listarBlogPorCategoria);
 
