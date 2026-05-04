@@ -297,26 +297,61 @@ const getPlanesPorPagina = (req, res) => {
 
 
 const activatePlan = (req, res) => {
-    const id = req.params.id;
-    request.post(`${PAYPAL_API}/v1/billing/plans/${id}/activate`, {
-        auth,
-        body: {},
-        json: true
+    const id = req.params.id; // El ID del plan (P-XXXXX)
+
+    request.post(`${PAYPAL_API}/v1/billing/plans/${id}/activate`, { 
+        auth, 
+        json: true 
     }, (err, response) => {
-        res.json({ planPaypal: response.body });
+        
+        // PayPal devuelve 204 si todo salió bien
+        if (response.statusCode === 204) {
+            return res.status(200).json({
+                ok: true,
+                msg: `Plan ${id} activado correctamente`
+            });
+        }
+
+        // Si hay un error (ej: el plan ya está activo o no existe)
+        res.status(response.statusCode).json({
+            ok: false,
+            msg: 'No se pudo activar el plan',
+            error: response.body
+        });
     });
 };
 
+
 const desactivatePlan = (req, res) => {
-    const id = req.params.id;
-    request.post(`${PAYPAL_API}/v1/billing/plans/${id}/deactivate`, {
-        auth,
-        body: {},
-        json: true
+    const id = req.params.id; // Recibe el P-XXXXXXXX
+
+    request.post(`${PAYPAL_API}/v1/billing/plans/${id}/deactivate`, { 
+        auth, 
+        json: true 
     }, (err, response) => {
-        res.json({ planPaypal: response.body });
+        
+        // Verificamos si hubo un error de red
+        if (err) {
+            return res.status(500).json({ ok: false, msg: 'Error de conexión con PayPal' });
+        }
+
+        // PayPal responde 204 No Content si se desactivó correctamente
+        if (response.statusCode === 204) {
+            return res.status(200).json({
+                ok: true,
+                msg: `El plan ${id} ha sido desactivado con éxito.`
+            });
+        }
+
+        // Si el plan ya estaba desactivado o no existe, PayPal devuelve el error en el body
+        res.status(response.statusCode).json({
+            ok: false,
+            msg: 'No se pudo desactivar el plan',
+            details: response.body
+        });
     });
 };
+
 
 //products
 
