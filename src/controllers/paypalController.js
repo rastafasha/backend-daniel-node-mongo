@@ -34,8 +34,8 @@ const createProduct = async (req, res) => {
             productPayload,
             {
                 auth: {
-                    username: PAYPAL_CLIENT_ID,
-                    password: PAYPAL_CLIENT_SECRET
+                    username: CLIENT,
+                    password: SECRET
                 },
                 headers: {
                     'Content-Type': 'application/json',
@@ -280,7 +280,7 @@ const getPlanesPorPagina = (req, res) => {
     // Obtenemos la página de los parámetros de la URL (ej: /planes?page=2)
     // Si no envían página, por defecto será la 1
     const pagina = req.query.page || 1;
-    const tamanoPagina = 10;
+    const tamanoPagina = 20;
 
     request.get(`${PAYPAL_API}/v1/billing/plans?page_size=${tamanoPagina}&page=${pagina}`, {
         auth,
@@ -322,7 +322,7 @@ const desactivatePlan = (req, res) => {
 
 const getProducts = (req, res) => {
     // Definimos cuántos queremos ver y en qué página empezar
-    const pageSize = 20; // Máximo permitido por página en esta API
+    const pageSize = 50; // Máximo permitido por página en esta API
     const page = 1;
     
     // Agregamos los parámetros a la URL
@@ -346,16 +346,15 @@ const getProducts = (req, res) => {
 
 
 const getProductsbyId = (req, res) => {
-    const { body } = req;
-    const id = req.params.id;
-    request.get(`${PAYPAL_API}/v1/catalogs/products/${id}`, {
-        auth,
-        body: {},
-        json: true
+    const { id } = req.params; // Pasa PROD-84P82764JY185074Y
+    request.get(`${PAYPAL_API}/v1/catalogs/products/${id}`, { 
+        auth, 
+        json: true 
     }, (err, response) => {
-        res.json({ productPaypal: response.body });
+        res.json(response.body);
     });
 };
+
 const updatePproduct = (req, res) => {
     const { body } = req;
     const id = req.params.id;

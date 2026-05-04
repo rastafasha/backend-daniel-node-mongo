@@ -4,6 +4,7 @@ const Categoria = require('../models/categoria');
 const Blog = require('../models/blog');
 const Usuario = require('../models/usuario');
 const Subcriptionpaypal = require('../models/subcriptionPaypal');
+const Planpaypal = require('../models/paypalPlan');
 
 const getTodo = async(req, res = response) => {
 
@@ -11,12 +12,13 @@ const getTodo = async(req, res = response) => {
     const regex = new RegExp(busqueda, 'i');
 
 
-    const [usuarios, blogs, categorias, pagos, subcriptions] = await Promise.all([
+    const [usuarios, blogs, categorias, pagos, subcriptions, planpaypals] = await Promise.all([
         Usuario.find({ username: regex}),
         Blog.find({ name: regex }),
         Categoria.find({ nombre: regex }),
         Pago.find({ referencia: regex }),
-        Subcriptionpaypal.find({ orderID: regex })
+        Subcriptionpaypal.find({ orderID: regex }),
+        Planpaypal.find({ orderID: regex })
     ]);
 
     res.json({
@@ -26,6 +28,7 @@ const getTodo = async(req, res = response) => {
         categorias,
         pagos,
         subcriptions,
+        planpaypals,
 
     })
 }
