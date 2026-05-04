@@ -12,110 +12,184 @@ const auth = { user: CLIENT, pass: SECRET };
 //el cual da como resultado :data : {id: PROD-4A346540KG295494N}
 
 
-const createProduct = async(req, res) => {
-    const product = { name, description, type, category, image_url } = req.body;
-    
-    // const product = {
-    //     name: 'Subscripcion Daniel project Agosto3',
-    //     description: "Subscripcion a un canal de Youtube se cobra mensualmente",
-    //     type: 'SERVICE',
-    //     category: 'SOFTWARE',
-    //     image_url: 'https://avatars.githubusercontent.com/u/15802366?s=460&u=ac6cc646599f2ed6c4699a74b15192a29177f85a&v=4'
-    // };
+const axios = require('axios'); // Recomendado sobre 'request' (que está deprecado)
 
-    //https://developer.paypal.com/docs/api/catalog-products/v1/#products_create
-    request.post(`${PAYPAL_API}/v1/catalogs/products`, {
-        auth,
-        body: product,
-        json: true
-    }, (err, response) => {
-        res.json({ productPaypal: response.body })
-        // console.log(res);
-    })
+const createProduct = async (req, res) => {
+    try {
+        // 1. Extraer datos del body correctamente
+        const { name, description, type, category, image_url, home_url } = req.body;
 
+        const productPayload = {
+            name,
+            description,
+            type: type || 'SERVICE', // SERVICE o PHYSICAL
+            category: category || 'SOFTWARE',
+            image_url,
+            home_url
+        };
 
+        // 2. Petición a PayPal usando Axios (más robusto)
+        const response = await axios.post(
+            `${PAYPAL_API}/v1/catalogs/products`,
+            productPayload,
+            {
+                auth: {
+                    username: PAYPAL_CLIENT_ID,
+                    password: PAYPAL_CLIENT_SECRET
+                },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'PayPal-Request-Id': `product-${Date.now()}` // Evita duplicados por reintentos
+                }
+            }
+        );
 
-}
+        // 3. Retornar solo lo necesario
+        res.status(201).json({
+            ok: true,
+            productId: response.data.id,
+            details: response.data
+        });
+
+    } catch (error) {
+        console.error('Error PayPal Product:', error.response?.data || error.message);
+        res.status(error.response?.status || 500).json({
+            ok: false,
+            message: 'Error al crear el producto en PayPal',
+            error: error.response?.data
+        });
+    }
+};
+
 
 // segundo
 
 // este incluirlo en el request como product_id
 // resultado id: P-69F139449T308873YMSOX7LY
 
-const createPlan = (req, res) => {
-    const { body } = req
-    //product_id
+const createPlan = async (req, res) => {
+    try {
+        const { 
+            name, 
+            product_id, 
+            interval_unit, 
+            fixed_price, 
+            setup_fee, 
+            percentage, 
+            total_cycles 
+        } = req.body;
 
-    const plan = {
-        name: body.name,
-        product_id: body.product_id,
-        status: body.status,
-        billing_cycles: [{
-            frequency: {
-                interval_unit: body.interval_unit,
-                interval_count: 1
-            },
-            tenure_type: "REGULAR",
-            sequence: 1,
-            total_cycles: body.total_cycles,
-            pricing_scheme: {
-                fixed_price: {
-                    value: body.fixed_price, //"3", // PRECIO MENSUAL QUE COBRAS 3.30USD
-                    currency_code: "USD"
+        const planPayload = {
+            product_id: product_id,
+            name: name,
+            description: `Plan de suscripción: ${name}`,
+            status: "ACTIVE", // Es mejor crearlos activos directamente
+            billing_cycles: [{
+                frequency: {
+                    interval_unit: interval_unit, // MONTH, YEAR, WEEK
+                    interval_count: 1
+                },
+                tenure_type: "REGULAR",
+                sequence: 1,
+                total_cycles: total_cycles || 0, // 0 significa infinito (hasta que se cancele)
+                pricing_scheme: {
+                    fixed_price: {
+                        value: String(fixed_price), // "3.00"
+                        currency_code: "USD"
+                    }
                 }
-            }
-        }],
-        payment_preferences: {
-            auto_bill_outstanding: true,
-            setup_fee: {
-                value: body.setup_fee,
-                currency_code: "USD"
+            }],
+            payment_preferences: {
+                auto_bill_outstanding: true,
+                setup_fee: {
+                    value: String(setup_fee || "0"),
+                    currency_code: "USD"
+                },
+                setup_fee_failure_action: "CONTINUE",
+                payment_failure_threshold: 3
             },
-            setup_fee_failure_action: "CONTINUE",
-            payment_failure_threshold: 3
-        },
-        taxes: {
-            percentage: body.percentage,  //"10", // 10USD + 10% = 11 USD
-            inclusive: false
-        }
-    }
+            taxes: {
+                percentage: String(percentage || "0"),
+                inclusive: false
+            }
+        };
 
-    request.post(`${PAYPAL_API}/v1/billing/plans`, {
-        auth,
-        body: plan,
-        json: true
-    }, (err, response) => {
-        res.json({ planPaypal: response.body })
-    })
-}
+        const response = await axios.post(
+            `${PAYPAL_API}/v1/billing/plans`,
+            planPayload,
+            {
+                auth,
+                headers: { 'PayPal-Request-Id': `plan-${Date.now()}` }
+            }
+        );
+
+        res.status(201).json({
+            ok: true,
+            planId: response.data.id, // Este es el P-XXXX que guardarás en tu DB
+            details: response.data
+        });
+
+    } catch (error) {
+        console.error('Error PayPal Plan:', error.response?.data || error.message);
+        res.status(400).json({
+            ok: false,
+            error: error.response?.data
+        });
+    }
+};
+
 // hay que pasar el plan_id P-69F139449T308873YMSOX7LY para generar la subcripcion
 
-const generateSubscription = (req, res) => {
-    const { body } = req
+const generateSubscription = async (req, res) => {
+    try {
+        const { plan_id, name, surname, email_address } = req.body;
 
-    const subscription = {
-        plan_id: body.plan_id, //P-69178834AV994513TMR67XZA
-        start_time: body.start_time,
-        quantity: 1,
-        subscriber: {
-            name: {
-                given_name: body.name,
-                surname: body.surname
+        const subscriptionPayload = {
+            plan_id: plan_id,
+            // start_time debe ser en formato ISO (ej: 2026-05-04T12:00:00Z)
+            // Si quieres que empiece YA, es mejor no enviarlo y PayPal usa el tiempo actual
+            quantity: "1", 
+            subscriber: {
+                name: {
+                    given_name: name,
+                    surname: surname
+                },
+                email_address: email_address,
             },
-            email_address: body.email_address,
-        },
-        return_url: process.env.GRACIAS_URL,
-        cancel_url: process.env.FALLO_URL
+            application_context: { // IMPORTANTE: PayPal usa esto para las URLs
+                brand_name: process.env.BRAND_NAME,
+                locale: "es-ES",
+                shipping_preference: "NO_SHIPPING", // Ideal para servicios digitales
+                user_action: "SUBSCRIBE_NOW",
+                return_url: process.env.GRACIAS_URL,
+                cancel_url: process.env.FALLO_URL
+            }
+        };
 
+        const response = await axios.post(
+            `${PAYPAL_API}/v1/billing/subscriptions`,
+            subscriptionPayload,
+            {
+                auth,
+                headers: { 'PayPal-Request-Id': `sub-${Date.now()}` }
+            }
+        );
+
+        // El 'id' que devuelve aquí es el ID de la suscripción (I-XXXXX)
+        // También devuelve una lista de 'links', el de 'approve' es el que el usuario debe visitar
+        res.status(201).json({
+            ok: true,
+            subscriptionId: response.data.id,
+            approvalUrl: response.data.links.find(link => link.rel === 'approve').href,
+            details: response.data
+        });
+
+    } catch (error) {
+        console.error('Error PayPal Subscription:', error.response?.data || error.message);
+        res.status(400).json({ ok: false, error: error.response?.data });
     }
-    request.post(`${PAYPAL_API}/v1/billing/subscriptions`, {
-        auth,
-        body: subscription,
-        json: true
-    }, (err, response) => {
-        res.json({ generateSubcription: response.body })
-    })
-}
+};
+
 
 // opcionales
 
@@ -247,16 +321,29 @@ const desactivatePlan = (req, res) => {
 //products
 
 const getProducts = (req, res) => {
-    const { body } = req;
-    request.get(`${PAYPAL_API}/v1/catalogs/products`, {
-        auth,
-        body: {},
-        json: true
-    },
-     (err, response) => {
-        res.json({ productPaypals: response.body });
+    // Definimos cuántos queremos ver y en qué página empezar
+    const pageSize = 20; // Máximo permitido por página en esta API
+    const page = 1;
+    
+    // Agregamos los parámetros a la URL
+    const url = `${PAYPAL_API}/v1/catalogs/products?page_size=${pageSize}&page=${page}&total_required=true`;
+
+    request.get(url, { 
+        auth, 
+        json: true 
+    }, (err, response) => {
+        if (err) {
+            return res.status(500).json({ ok: false, error: err });
+        }
+        
+        // Los productos suelen venir en response.body.products
+        res.json({ 
+            ok: true,
+            productPaypals: response.body.products || [] 
+        });
     });
 };
+
 
 const getProductsbyId = (req, res) => {
     const { body } = req;
@@ -329,31 +416,18 @@ const getSubcriptionbyId = (req, res) => {
 
 const borrarProduct = async (req, res) => {
 
-    const id = req.params.id;
-
+    const id = req.params.id; 
     try {
-
-        const product = await PaypalPlan.findById(id);
+        // Si el id que envías es el de Mongo (_id)
+        const product = await PaypalPlan.findByIdAndDelete(id);
+        
         if (!product) {
-            return res.status(500).json({
-                ok: false,
-                msg: 'product no encontrado por el id'
-            });
+            return res.status(404).json({ ok: false, msg: 'Producto no encontrado' });
         }
 
-        await PaypalPlan.findByIdAndDelete(id);
-
-        res.json({
-            ok: true,
-            msg: 'product eliminado'
-        });
-
+        res.json({ ok: true, msg: 'Referencia eliminada de la base de datos local' });
     } catch (error) {
-        console.log(error)
-        res.status(500).json({
-            ok: false,
-            msg: 'Error hable con el admin'
-        });
+        res.status(500).json({ ok: false, msg: 'Error al eliminar' });
     }
 };
 
