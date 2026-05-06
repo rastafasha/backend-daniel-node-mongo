@@ -25,13 +25,14 @@ const {
 
 } = require('../controllers/blogController');
 const { validarJWT, validarJWTOpcional} = require('../middlewares/validar-jwt');
+const { verificarLimiteArticulos} = require('../middlewares/verificar-limite');
 const { check } = require('express-validator');
 const { validarCampos } = require('../middlewares/validar-campos');
 
 router.get('/', getBlogs);
 router.get('/destacados', destacados);
 router.get('/activos', activos);
-router.get('/find_by_slug/:slug', validarJWTOpcional, find_by_slug);
+router.get('/find_by_slug/:slug', [validarJWTOpcional,verificarLimiteArticulos], find_by_slug);
 router.get('/recientes', listar_newest);
 router.get('/recientes_paginados', listar_newestPaginados);
 router.get('/user_blog/:id', listarBlogPorUsuario);
@@ -41,14 +42,12 @@ router.get('/blog_categoria/:nombre', listarBlogPorCategoria);
 router.post('/crear', [
     validarJWT,
     check('name', 'El nombre es necesario').not().isEmpty(),
-    // check('categoria', 'El categoria id debe de ser valido').isMongoId(),
     validarCampos
 ], crearBlog);
 
 router.put('/editar/:id', [
     validarJWT,
     check('name', 'El nombre es necesario').not().isEmpty(),
-    // check('categoria', 'El categoria id debe de ser valido').isMongoId(),
     validarCampos
 ], actualizarBlog);
 
@@ -62,5 +61,6 @@ router.get('/activar/:id', validarJWT, activar);
 router.get('/blogs_ventas/best_sellers', validarJWT, listar_best_sellers);
 router.get('/blog_by_categorynombre/:nombre', cat_by_name);
 router.get('/blogs_ventas/aumentar/:id', validarJWT, aumentar_venta);
+
 
 module.exports = router;

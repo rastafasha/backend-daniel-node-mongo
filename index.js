@@ -73,22 +73,21 @@ app.use('/api/usuarios', require('./src/routes/usuarios'));
 app.use('/api/profile', require('./src/routes/profile'));
 app.use('/api/blogs', require('./src/routes/blog'));
 app.use('/api/categorias', require('./src/routes/categoria'));
-app.use('/api/plans', require('./src/routes/plan'));
 app.use('/api/pagos', require('./src/routes/pago'));
 app.use('/api/banners', require('./src/routes/banner'));
 app.use('/api/uploads', require('./src/routes/uploads'));
 app.use('/api/todo', require('./src/routes/busquedas'));
 app.use('/api/contactos', require('./src/routes/contacto'));
-
-app.use('/api/cursos', require('./src/routes/curso'));
 app.use('/api/videos', require('./src/routes/video'));
 app.use('/api/favoritos', require('./src/routes/favorito'));
-
-app.use('/api/paypal', require('./src/routes/paypal'));
-app.use('/api/planpaypal', require('./src/routes/planpaypal'));
-app.use('/api/subcriptionpaypal', require('./src/routes/subcripcionpaypaldb'));
 app.use('/api/sideadvices', require('./src/routes/sideadvice'));
 app.use('/api/paises', require('./src/routes/pais'));
+
+app.use('/api/paypal', require('./src/routes/paypal'));
+app.use('/api/subcriptionpaypal', require('./src/routes/subcripcionpaypaldb'));
+app.use('/api/subcriptionpaypal', require('./src/routes/subcripcionpaypaldb'));
+app.use('/api/webhooks', require('./src/routes/webhook-paypal'));
+
 
 
 //rutas

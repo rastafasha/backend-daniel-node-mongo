@@ -1,5 +1,6 @@
 const request = require('request');
 const PaypalPlan = require('../models/paypalPlan');
+const Profile = require('../models/profile');
 
 const CLIENT = process.env.CLIENT;
 const SECRET = process.env.SECRET;
@@ -69,14 +70,14 @@ const createProduct = async (req, res) => {
 
 const createPlan = async (req, res) => {
     try {
-        const { 
-            name, 
-            product_id, 
-            interval_unit, 
-            fixed_price, 
-            setup_fee, 
-            percentage, 
-            total_cycles 
+        const {
+            name,
+            product_id,
+            interval_unit,
+            fixed_price,
+            setup_fee,
+            percentage,
+            total_cycles
         } = req.body;
 
         const planPayload = {
@@ -148,7 +149,7 @@ const generateSubscription = async (req, res) => {
             plan_id: plan_id,
             // start_time debe ser en formato ISO (ej: 2026-05-04T12:00:00Z)
             // Si quieres que empiece YA, es mejor no enviarlo y PayPal usa el tiempo actual
-            quantity: "1", 
+            quantity: "1",
             subscriber: {
                 name: {
                     given_name: name,
@@ -173,6 +174,14 @@ const generateSubscription = async (req, res) => {
                 auth,
                 headers: { 'PayPal-Request-Id': `sub-${Date.now()}` }
             }
+        );
+
+        const subscriptionId = response.data.id;
+        // Guardamos el ID de suscripción en el PERFIL
+        // Suponiendo que tienes el profileId a mano o lo buscas por el userId
+        await Profile.findOneAndUpdate(
+            { userId: req.user.id },
+            { paypalSubscriptionId: subscriptionId }
         );
 
         // El 'id' que devuelve aquí es el ID de la suscripción (I-XXXXX)
@@ -203,7 +212,8 @@ const createPayment = (req, res) => {
         purchase_units: [{
             amount: {
                 currency_code: 'USD',
-                value: body.value
+                value: body.value,
+                custom_id: `${user._id}|${article._id}`
             }
         }],
         application_context: {
@@ -217,12 +227,13 @@ const createPayment = (req, res) => {
     };
     request.post(`${PAYPAL_API}/v2/checkout/orders`, {
         auth,
-        body:pago,
+        body: pago,
         json: true
     }, (err, response) => {
         res.json({ data: response.body });
     });
 };
+
 //captura el dinero
 const executePayment = (req, res) => {
     const token = req.query.token;
@@ -238,6 +249,7 @@ const executePayment = (req, res) => {
 };
 
 
+
 const getPlans = (req, res) => {
     // const token = req.query.token;
     // console.log(`${PAYPAL_API}/v2/checkout/orders/${token}/capture`);
@@ -247,9 +259,9 @@ const getPlans = (req, res) => {
         body: body,
         json: true
     },
-     (err, response) => {
-        res.json({ planPaypals: response.body });
-    });
+        (err, response) => {
+            res.json({ planPaypals: response.body });
+        });
 };
 
 const getPlanbyId = (req, res) => {
@@ -289,8 +301,8 @@ const getPlanesPorPagina = (req, res) => {
         if (err) {
             return res.status(500).json({ error: "Error al conectar con PayPal" });
         }
-        res.json({ 
-            planPaypal: response.body 
+        res.json({
+            planPaypal: response.body
         });
     });
 };
@@ -299,11 +311,11 @@ const getPlanesPorPagina = (req, res) => {
 const activatePlan = (req, res) => {
     const id = req.params.id; // El ID del plan (P-XXXXX)
 
-    request.post(`${PAYPAL_API}/v1/billing/plans/${id}/activate`, { 
-        auth, 
-        json: true 
+    request.post(`${PAYPAL_API}/v1/billing/plans/${id}/activate`, {
+        auth,
+        json: true
     }, (err, response) => {
-        
+
         // PayPal devuelve 204 si todo salió bien
         if (response.statusCode === 204) {
             return res.status(200).json({
@@ -325,11 +337,11 @@ const activatePlan = (req, res) => {
 const desactivatePlan = (req, res) => {
     const id = req.params.id; // Recibe el P-XXXXXXXX
 
-    request.post(`${PAYPAL_API}/v1/billing/plans/${id}/deactivate`, { 
-        auth, 
-        json: true 
+    request.post(`${PAYPAL_API}/v1/billing/plans/${id}/deactivate`, {
+        auth,
+        json: true
     }, (err, response) => {
-        
+
         // Verificamos si hubo un error de red
         if (err) {
             return res.status(500).json({ ok: false, msg: 'Error de conexión con PayPal' });
@@ -359,22 +371,22 @@ const getProducts = (req, res) => {
     // Definimos cuántos queremos ver y en qué página empezar
     const pageSize = 50; // Máximo permitido por página en esta API
     const page = 1;
-    
+
     // Agregamos los parámetros a la URL
     const url = `${PAYPAL_API}/v1/catalogs/products?page_size=${pageSize}&page=${page}&total_required=true`;
 
-    request.get(url, { 
-        auth, 
-        json: true 
+    request.get(url, {
+        auth,
+        json: true
     }, (err, response) => {
         if (err) {
             return res.status(500).json({ ok: false, error: err });
         }
-        
+
         // Los productos suelen venir en response.body.products
-        res.json({ 
+        res.json({
             ok: true,
-            productPaypals: response.body.products || [] 
+            productPaypals: response.body.products || []
         });
     });
 };
@@ -382,9 +394,9 @@ const getProducts = (req, res) => {
 
 const getProductsbyId = (req, res) => {
     const { id } = req.params; // Pasa PROD-84P82764JY185074Y
-    request.get(`${PAYPAL_API}/v1/catalogs/products/${id}`, { 
-        auth, 
-        json: true 
+    request.get(`${PAYPAL_API}/v1/catalogs/products/${id}`, {
+        auth,
+        json: true
     }, (err, response) => {
         res.json(response.body);
     });
@@ -431,9 +443,9 @@ const getSubcriptions = (req, res) => {
         body: body,
         json: true
     },
-     (err, response) => {
-        res.json({ data: response.body });
-    });
+        (err, response) => {
+            res.json({ data: response.body });
+        });
 };
 
 const getSubcriptionbyId = (req, res) => {
@@ -450,7 +462,7 @@ const getSubcriptionbyId = (req, res) => {
 
 const borrarProduct = async (req, res) => {
 
-   const id = req.params.id;
+    const id = req.params.id;
     const data = [
         {
             op: "replace",
@@ -459,10 +471,10 @@ const borrarProduct = async (req, res) => {
         }
     ];
 
-    request.patch(`${PAYPAL_API}/v1/catalogs/products/${id}`, { 
-        auth, 
-        body: data, 
-        json: true 
+    request.patch(`${PAYPAL_API}/v1/catalogs/products/${id}`, {
+        auth,
+        body: data,
+        json: true
     }, (err, response) => {
         res.json({ ok: true, msg: "Producto marcado como obsoleto" });
     });
@@ -489,5 +501,5 @@ module.exports = {
     getProductsByPage,
     getSubcriptions,
     getSubcriptionbyId,
-    borrarProduct
+    borrarProduct,
 };

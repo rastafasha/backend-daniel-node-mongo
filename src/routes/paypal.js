@@ -23,7 +23,8 @@ const {
    getPlanesPorPagina,
    getSubcriptions,
    getSubcriptionbyId,
-   borrarProduct
+   borrarProduct,
+   
 } = require('../controllers/paypalController');
 const { validarJWT } = require('../middlewares/validar-jwt');
 
