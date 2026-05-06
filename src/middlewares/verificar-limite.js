@@ -8,7 +8,10 @@ const verificarLimiteArticulos = async (req, res, next) => {
         if (!perfil) return res.status(404).json({ msg: 'Perfil no encontrado' });
 
         // 1. Si es premium, no contamos
-        if (perfil.plan === 'premium') return next();
+        if (perfil.plan === 'premium') {
+            // console.log('Usuario es Premium, saltando límite...');
+            return next();
+        }
 
         // 2. Reinicio mensual
         const ahora = new Date();

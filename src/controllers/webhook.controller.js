@@ -9,7 +9,7 @@ const handlePaypalWebhook = async (req, res) => {
             case 'BILLING.SUBSCRIPTION.ACTIVATED':
                 await Profile.findOneAndUpdate(
                     { paypalSubscriptionId: resource.id }, 
-                    { plan: 'premium' }
+                    { plan: 'premium' } // Este es el que ahora hace que find_by_slug devuelva fullContent: true
                 );
                 console.log(`Perfil Premium activado: ${resource.id}`);
                 break;

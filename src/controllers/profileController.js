@@ -3,22 +3,28 @@ const Profile = require('../models/profile');
 const Subcriptionpaypal = require('../models/subcriptionPaypal');
 
 const crearProfile = async (req, res) => {
-
     const uid = req.uid;
-    const profile = new Profile({
-        usuario: uid,
-        ...req.body
+
+    // Definimos los valores por defecto del Plan Gratuito
+    const datosPlanGratuito = {
+        plan: 'free',
+        articulosVistos: 0,
+        // Seteamos la fecha de reinicio para dentro de 30 días
+        fechaReinicio: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+    };
+
+    const profile = new Profile({ 
+        usuario: uid, 
+        ...req.body,       // Datos que vienen del formulario (nombre, ciudad, etc)
+        ...datosPlanGratuito // Forzamos que empiece como Free con sus límites
     });
 
     try {
-
         const profileDB = await profile.save();
-
         res.json({
             ok: true,
             profile: profileDB
         });
-
     } catch (error) {
         console.log(error);
         res.status(500).json({
@@ -26,9 +32,8 @@ const crearProfile = async (req, res) => {
             msg: 'Hable con el admin'
         });
     }
-
-
 };
+
 
 const actualizarProfile = async (req, res) => {
 

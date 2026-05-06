@@ -314,69 +314,51 @@ function listar_newest(req, res) {
         });
 }
 
-
 async function find_by_slug(req, res) {
     const slug = req.params['slug'];
-    const uid = req.uid; // ID que viene del validarJWT
-    // console.log("TOKEN UID RECIBIDO:", req.uid);
+    const uid = req.uid; 
 
     try {
         const blog_data = await Blog.findOne({ slug: slug })
             .populate('usuario', 'username img')
             .populate('categoria');
+
         if (!blog_data) return res.status(404).send({ message: 'No existe' });
 
-        // 1. Si no hay login (Invitado) -> SIEMPRE FALSE
+        // 1. Si no hay login, mandamos el blog pero con contenido bloqueado
         if (!uid) {
             return res.status(200).send({ blog: blog_data, fullContent: false });
         }
 
         // 2. Buscamos el Perfil
-        const perfil = await Profile.findOne({ usuario: uid }).populate('subcription');
-        if (!perfil) return res.status(200).send({ blog: blog_data, fullContent: false });
+        const perfil = await Profile.findOne({ usuario: uid });
 
-        // 3. Verificamos si es MEMBER (Suscripción ACTIVE)
-        const esMember = perfil.subcription && (
-            Array.isArray(perfil.subcription)
-                ? perfil.subcription.some(s => s.status === 'ACTIVE')
-                : perfil.subcription.status === 'ACTIVE'
-        );
+        // 3. Verificamos si es Premium (Usando el campo que actualiza tu Webhook)
+        const esPremium = perfil.plan === 'premium';
 
         // 4. Verificamos si compró este artículo individualmente
         const haComprado = perfil.pagos.includes(blog_data._id);
 
-        // SI ES MEMBER O COMPRÓ -> FULL CONTENT TRUE
-        if (esMember || haComprado) {
-            return res.status(200).send({ blog: blog_data, fullContent: true });
-        }
+        // 5. Verificamos el contador (Si el middleware lo dejó pasar, es que tiene créditos)
+        const tieneCreditosGratis = perfil.articulosVistos <= 3;
 
-        // 5. LÓGICA DE CRÉDITOS GRATIS (USER normal)
-        if (perfil.articulosVistos < 3) {
-            // IMPORTANTE: Aquí es donde debe devolver TRUE
-            // Opcional: solo incrementa si el artículo no ha sido visto antes en esta sesión
-            perfil.articulosVistos += 1;
-            await perfil.save();
-
-            return res.status(200).send({
-                blog: blog_data,
-                fullContent: true, // <--- ESTO hará que Angular lo muestre
-                quedan: 3 - perfil.articulosVistos
+        // RESULTADO FINAL: Si es premium, o lo compró, o aún tiene sus 3 créditos...
+        if (esPremium || haComprado || tieneCreditosGratis) {
+            return res.status(200).send({ 
+                blog: blog_data, 
+                fullContent: true,
+                plan: perfil.plan // Para que Angular sepa el estado
             });
         }
 
-        // 6. Si llegó aquí es porque ya gastó los 3 créditos
-        return res.status(403).json({
-            ok: false,
-            limiteAlcanzado: true,
-            fullContent: false,
-            // blog: { name: blog_data.name, introhome: blog_data.introhome, img: blog_data.img }
-            blog: blog_data
-        });
+        // 6. Por seguridad, si nada de lo anterior se cumple
+        return res.status(200).send({ blog: blog_data, fullContent: false });
 
     } catch (err) {
         res.status(500).send({ message: 'Error', err });
     }
 }
+
 
 
 
