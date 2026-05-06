@@ -2,8 +2,8 @@ const request = require('request');
 const PaypalPlan = require('../models/paypalPlan');
 const Profile = require('../models/profile');
 
-const CLIENT = process.env.CLIENT;
-const SECRET = process.env.SECRET;
+const CLIENT = process.env.PAYPAL_CLIENT_ID;
+const SECRET = process.env.PAYPAL_SECRET;
 const PAYPAL_API = process.env.PAYPAL_API;
 
 const auth = { user: CLIENT, pass: SECRET };
@@ -199,6 +199,48 @@ const generateSubscription = async (req, res) => {
     }
 };
 
+const updatePlan = (req, res) => {
+    const id = req.params.id;
+    const { name, description, status } = req.body; // Campos que quieres actualizar
+
+    // PayPal requiere este formato específico (Array de operaciones)
+    const patchPayload = [];
+
+    if (name) {
+        patchPayload.push({ op: "replace", path: "/name", value: name });
+    }
+    if (description) {
+        patchPayload.push({ op: "replace", path: "/description", value: description });
+    }
+    if (status) {
+        patchPayload.push({ op: "replace", path: "/status", value: status });
+    }
+
+    // Si quieres cambiar el estado de las preferencias de pago (ej. auto_bill_outstanding)
+    // patchPayload.push({ op: "replace", path: "/payment_preferences/auto_bill_outstanding", value: true });
+
+    request.patch({
+        url: `${PAYPAL_API}/v1/billing/plans/${id}`,
+        auth,
+        body: patchPayload, // Enviamos el array de parches
+        json: true,
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }, (err, response) => {
+        if (err) {
+            return res.status(500).json({ ok: false, err });
+        }
+        
+        // PayPal devuelve un 204 No Content si todo sale bien en un PATCH
+        if (response.statusCode === 204) {
+            return res.json({ ok: true, msg: 'Plan actualizado correctamente' });
+        }
+
+        res.json({ planPaypal: response.body });
+    });
+};
+
 
 // opcionales
 
@@ -276,17 +318,8 @@ const getPlanbyId = (req, res) => {
     });
 };
 
-const updatePlan = (req, res) => {
-    const { body } = req;
-    const id = req.params.id;
-    request.patch(`${PAYPAL_API}/v1/billing/plans/${id}`, {
-        auth,
-        body: {},
-        json: true
-    }, (err, response) => {
-        res.json({ planPaypal: response.body });
-    });
-};
+
+
 
 const getPlanesPorPagina = (req, res) => {
     // Obtenemos la página de los parámetros de la URL (ej: /planes?page=2)

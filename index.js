@@ -41,9 +41,10 @@ app.use((req, res, next) => {
   }
 
   // Esto permite CUALQUIER header que el navegador intente enviar (incluyendo 'prefer')
-  res.header('Access-Control-Allow-Headers', 'Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method, x-token, x-paypal-security-context, prefer');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
-  res.header('Allow', 'GET, POST, OPTIONS, PUT, DELETE');
+  // res.header('Access-Control-Allow-Headers', 'Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method, x-token, x-paypal-security-context, prefer, paypal-request-id');
+  res.header('Access-Control-Allow-Headers', req.header('Access-Control-Request-Headers'));
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE, PATCH');
+  res.header('Allow', 'GET, POST, OPTIONS, PUT, DELETE, PATCH');
   res.header('Access-Control-Allow-Credentials', 'true');
 
   // Responder inmediatamente a las peticiones de prueba (OPTIONS)
