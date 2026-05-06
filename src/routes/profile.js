@@ -12,6 +12,7 @@ const {
     actualizarProfile,
     borrarProfile,
     listarProfilePorUsuario,
+    activarPlanGratuitoInterno
 } = require('../controllers/profileController');
 
 const {
@@ -32,6 +33,10 @@ router.post('/crear', [
     // check('usuario', 'El usuario id debe de ser valido').isMongoId(),
     validarCampos
 ], crearProfile);
+
+router.post('/plangratuito', [
+    validarJWT,
+], activarPlanGratuitoInterno);
 
 
 router.put('/editar/:id', [

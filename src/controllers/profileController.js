@@ -173,6 +173,32 @@ const listarProfilePorUsuario = async (req, res) => {
         res.status(500).send({ error: err });
     }
 };
+//plan gratuito paypal por defecto
+const activarPlanGratuitoInterno = async (req, res) => {
+    try {
+        const uid = req.uid; // ID del usuario desde el validarJWT
+
+        const perfil = await Profile.findOneAndUpdate(
+            { usuario: uid },
+            { 
+                plan: 'free', 
+                articulosVistos: 0,
+                // Reiniciamos la fecha para que tenga 30 días desde hoy
+                fechaReinicio: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) 
+            },
+            { new: true }
+        );
+
+        res.json({
+            ok: true,
+            msg: 'Plan Gratuito activado correctamente',
+            perfil
+        });
+    } catch (error) {
+        res.status(500).json({ ok: false, msg: 'Error al activar el plan' });
+    }
+};
+
 
 
 
@@ -184,6 +210,7 @@ module.exports = {
     actualizarProfile,
     borrarProfile,
     listarProfilePorUsuario,
+    activarPlanGratuitoInterno
 
 
 };

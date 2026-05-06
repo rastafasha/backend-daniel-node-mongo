@@ -6,7 +6,10 @@ const CLIENT = process.env.PAYPAL_CLIENT_ID;
 const SECRET = process.env.PAYPAL_SECRET;
 const PAYPAL_API = process.env.PAYPAL_API;
 
-const auth = { user: CLIENT, pass: SECRET };
+const auth = {
+    username: CLIENT,
+    password: SECRET
+};
 
 // primero
 //para crear el plan primero hay que generar el producto, 
@@ -80,6 +83,9 @@ const createPlan = async (req, res) => {
             total_cycles
         } = req.body;
 
+         // 1. Forzamos los valores para que PayPal NO reciba basura ni undefined
+        const valorPrecio = parseFloat(fixed_price || 0).toFixed(2).toString();
+
         const planPayload = {
             product_id: product_id,
             name: name,
@@ -115,12 +121,23 @@ const createPlan = async (req, res) => {
             }
         };
 
+       
+
+       
+        // 2. LOG CRUCIAL: Revisa esto en tu terminal de VS Code/Node
+        console.log("JSON FINAL ENVIADO A PAYPAL:", JSON.stringify(planPayload, null, 2));
+
+
+        // 2. ENVIAR COMO STRING PARA QUE NADIE LO FORMATEE
         const response = await axios.post(
             `${PAYPAL_API}/v1/billing/plans`,
-            planPayload,
+            JSON.stringify(planPayload), // <-- Convertimos a texto aquí
             {
                 auth,
-                headers: { 'PayPal-Request-Id': `plan-${Date.now()}` }
+                headers: {
+                    'PayPal-Request-Id': `plan-${Date.now()}`,
+                    'Content-Type': 'application/json' // Obligatorio al enviar string
+                }
             }
         );
 
@@ -231,7 +248,7 @@ const updatePlan = (req, res) => {
         if (err) {
             return res.status(500).json({ ok: false, err });
         }
-        
+
         // PayPal devuelve un 204 No Content si todo sale bien en un PATCH
         if (response.statusCode === 204) {
             return res.json({ ok: true, msg: 'Plan actualizado correctamente' });
