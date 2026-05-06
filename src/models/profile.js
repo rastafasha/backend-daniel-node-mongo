@@ -22,6 +22,7 @@ const profileSchema = Schema({
     favoritos: [{ type: Schema.Types.ObjectId, ref: 'Favorito' }],
     pagos: [{ type: Schema.Types.ObjectId, ref: 'Pago' }],
     subcription: [{ type: Schema.Types.ObjectId, ref: 'Subcriptionpaypal' }],
+    articulosVistos: { type: Number, default: 0 },
 }, { collection: 'profiles' });
 
 

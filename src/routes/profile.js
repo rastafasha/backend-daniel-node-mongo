@@ -23,7 +23,7 @@ const {
 router.get('/all/', validarJWT, getProfiles);
 router.get('/:id', [validarJWT], getProfile);
 router.delete('/borrar/:id', [validarJWT, ], borrarProfile);
-router.get('/user_profile/:id', listarProfilePorUsuario);
+router.get('/user_profile/:id',validarJWT, listarProfilePorUsuario);
 
 router.post('/crear', [
     validarJWT,

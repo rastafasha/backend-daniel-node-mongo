@@ -24,14 +24,14 @@ const {
     listar_newestPaginados
 
 } = require('../controllers/blogController');
-const { validarJWT } = require('../middlewares/validar-jwt');
+const { validarJWT, validarJWTOpcional} = require('../middlewares/validar-jwt');
 const { check } = require('express-validator');
 const { validarCampos } = require('../middlewares/validar-campos');
 
 router.get('/', getBlogs);
 router.get('/destacados', destacados);
 router.get('/activos', activos);
-router.get('/find_by_slug/:slug', find_by_slug);
+router.get('/find_by_slug/:slug', validarJWTOpcional, find_by_slug);
 router.get('/recientes', listar_newest);
 router.get('/recientes_paginados', listar_newestPaginados);
 router.get('/user_blog/:id', listarBlogPorUsuario);

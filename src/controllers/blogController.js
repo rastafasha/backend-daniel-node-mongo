@@ -1,6 +1,7 @@
 const { response } = require('express');
 const Blog = require('../models/blog');
 const Categoria = require('../models/categoria');
+const Profile = require('../models/profile');
 
 
 const getBlogs = async (req, res) => {
@@ -314,26 +315,72 @@ function listar_newest(req, res) {
 }
 
 
+async function find_by_slug(req, res) {
+    const slug = req.params['slug'];
+    const uid = req.uid; // ID que viene del validarJWT
+    // console.log("TOKEN UID RECIBIDO:", req.uid);
 
-function find_by_slug(req, res) {
-    var slug = req.params['slug'];
+    try {
+        const blog_data = await Blog.findOne({ slug: slug })
+            .populate('usuario', 'username img')
+            .populate('categoria');
+        if (!blog_data) return res.status(404).send({ message: 'No existe' });
 
-    Blog.findOne({ slug: slug })
-        .populate('usuario', 'email uid username')
-        .populate('categoria', 'nombre _id')
-        .populate('pago')
-        .exec((err, blog_data) => {
-            if (err) {
-                res.status(500).send({ message: 'Ocurrió un error en el servidor.' });
-            } else {
-                if (blog_data) {
-                    res.status(200).send({ blog: blog_data });
-                } else {
-                    res.status(500).send({ message: 'No se encontró ningun dato en esta sección.' });
-                }
-            }
+        // 1. Si no hay login (Invitado) -> SIEMPRE FALSE
+        if (!uid) {
+            return res.status(200).send({ blog: blog_data, fullContent: false });
+        }
+
+        // 2. Buscamos el Perfil
+        const perfil = await Profile.findOne({ usuario: uid }).populate('subcription');
+        if (!perfil) return res.status(200).send({ blog: blog_data, fullContent: false });
+
+        // 3. Verificamos si es MEMBER (Suscripción ACTIVE)
+        const esMember = perfil.subcription && (
+            Array.isArray(perfil.subcription)
+                ? perfil.subcription.some(s => s.status === 'ACTIVE')
+                : perfil.subcription.status === 'ACTIVE'
+        );
+
+        // 4. Verificamos si compró este artículo individualmente
+        const haComprado = perfil.pagos.includes(blog_data._id);
+
+        // SI ES MEMBER O COMPRÓ -> FULL CONTENT TRUE
+        if (esMember || haComprado) {
+            return res.status(200).send({ blog: blog_data, fullContent: true });
+        }
+
+        // 5. LÓGICA DE CRÉDITOS GRATIS (USER normal)
+        if (perfil.articulosVistos < 3) {
+            // IMPORTANTE: Aquí es donde debe devolver TRUE
+            // Opcional: solo incrementa si el artículo no ha sido visto antes en esta sesión
+            perfil.articulosVistos += 1;
+            await perfil.save();
+
+            return res.status(200).send({
+                blog: blog_data,
+                fullContent: true, // <--- ESTO hará que Angular lo muestre
+                quedan: 3 - perfil.articulosVistos
+            });
+        }
+
+        // 6. Si llegó aquí es porque ya gastó los 3 créditos
+        return res.status(403).json({
+            ok: false,
+            limiteAlcanzado: true,
+            fullContent: false,
+            // blog: { name: blog_data.name, introhome: blog_data.introhome, img: blog_data.img }
+            blog: blog_data
         });
+
+    } catch (err) {
+        res.status(500).send({ message: 'Error', err });
+    }
 }
+
+
+
+
 
 const listarBlogPorUsuario = (req, res) => {
     var id = req.params['id'];

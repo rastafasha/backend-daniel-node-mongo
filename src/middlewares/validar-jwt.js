@@ -3,7 +3,10 @@ const Usuario = require('../models/usuario');
 
 const validarJWT = (req, res, next) => {
     //leer el token
-    const token = req.header('x-token');
+     // Intentamos leerlo de todas las formas posibles
+    const token = req.header('x-token') || 
+                  req.headers['x-token'] || 
+                  req.query.token; // Por si acaso
 
     if (!token) {
         return res.status(401).json({
@@ -26,6 +29,32 @@ const validarJWT = (req, res, next) => {
     }
 
 
+};
+
+const validarJWTOpcional = (req, res, next) => {
+    // Intentamos leerlo de todas las formas posibles
+    const token = req.header('x-token') || 
+                  req.headers['x-token'] || 
+                  req.query.token; // Por si acaso
+    
+    // console.log('--- DEBUG FINAL ---');
+    // console.log('Headers recibidos:', req.headers); // Mira si 'x-token' aparece aquí
+
+
+    if (!token) {
+        return next();
+    }
+
+    try {
+        const payload = jwt.verify(token, process.env.JWT_SECRET);
+        // console.log('Contenido del Payload:', payload); // Mira si aquí dice "uid" o "_id"
+        
+        req.uid = payload.uid; // Asegúrate de que coincida con el nombre en el payload
+        next();
+    } catch (error) {
+        console.log('Error verificando token:', error.message);
+        next(); 
+    }
 };
 
 const validarAdminRole = async(req, res, next) => {
@@ -261,6 +290,7 @@ const validarUserRoleOMismoUsuario = async(req, res, next) => {
 
 module.exports = {
     validarJWT,
+    validarJWTOpcional,
     validarAdminRoleOMismoUsuario,
     validarUserRole,
     validarAdminRole,

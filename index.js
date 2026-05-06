@@ -26,31 +26,35 @@ const server = require('http').Server(app);
 //cron jobs
 
 //cors
-// Initialize socket.io with the server
-const allowedOrigins = [
-  "http://localhost:4200",
-  "http://localhost:4203",
-  "https://articlesapp-jade.vercel.app",
-  "https://admin-artilces.vercel.app",
-];
 
-// Configuración compartida
-const corsOptions = {
-  origin: (origin, callback) => {
-    // Si el origen está en la lista o es una petición local (sin origen)
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Origin no permitido por CORS'));
-    }
-  },
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  credentials: true,
-  optionsSuccessStatus: 204
-};
+app.use((req, res, next) => {
+  const allowedOrigins = [
+    "http://localhost:4200",
+    "http://localhost:4203",
+    "https://articlesapp-jade.vercel.app",
+    "https://admin-artilces.vercel.app",
+  ];
+  const origin = req.headers.origin;
 
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+
+  // Esto permite CUALQUIER header que el navegador intente enviar (incluyendo 'prefer')
+  res.header('Access-Control-Allow-Headers', 'Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method, x-token, x-paypal-security-context, prefer');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+  res.header('Allow', 'GET, POST, OPTIONS, PUT, DELETE');
+  res.header('Access-Control-Allow-Credentials', 'true');
+
+  // Responder inmediatamente a las peticiones de prueba (OPTIONS)
+  if (req.method === 'OPTIONS') {
+    return res.status(200).send();
+  }
+
+  next();
+});
 //cors
-app.use(cors(corsOptions));
+
 
 
 //lectura y parseo del body
@@ -93,7 +97,7 @@ app.use('/api/paises', require('./src/routes/pais'));
 
 //test
 app.get("/", (req, res) => {
-    res.json({ message: "Welcome to nodejs." });
+  res.json({ message: "Welcome to nodejs." });
 });
 
 app.get("/welcome", (req, res) => res.type('html').send(html));
@@ -105,7 +109,7 @@ app.use(bodyParser.json());
 
 //lo ultimo
 app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, 'public')); //ruta para produccion, evita perder la ruta
+  res.sendFile(path.resolve(__dirname, 'public')); //ruta para produccion, evita perder la ruta
 });
 
 
@@ -170,5 +174,5 @@ const html = `
 
 
 server.listen(process.env.PORT, () => {
-    console.log('Servidor en puerto: ' + process.env.PORT);
+  console.log('Servidor en puerto: ' + process.env.PORT);
 });
