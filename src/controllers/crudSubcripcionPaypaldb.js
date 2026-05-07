@@ -119,8 +119,6 @@ const actualizarSubcriptionPlanPaypal = async(req, res) => {
 
 };
 
-
-
 function desactivar(req, res) {
     var id = req.params['id'];
 
@@ -152,10 +150,6 @@ function activar(req, res) {
         }
     })
 }
-
-
-
-
 
 
 const listarPorUsuario = (req, res) => {

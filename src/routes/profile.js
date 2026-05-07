@@ -12,7 +12,8 @@ const {
     actualizarProfile,
     borrarProfile,
     listarProfilePorUsuario,
-    activarPlanGratuitoInterno
+    activarPlanGratuitoInterno,
+    saveSubscriptionId
 } = require('../controllers/profileController');
 
 const {
@@ -37,6 +38,10 @@ router.post('/crear', [
 router.post('/plangratuito', [
     validarJWT,
 ], activarPlanGratuitoInterno);
+
+router.post('/save-subscription', [
+    validarJWT,
+], saveSubscriptionId);
 
 
 router.put('/editar/:id', [

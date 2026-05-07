@@ -165,7 +165,8 @@ const listarFavoritoPorUsuario = (req, res) => {
             res.status(500).send({ error: err });
         }
     }).populate('usuario',' username email uid')
-    .populate('blog');
+    .populate('blog')
+    .sort({ createdAt: -1 });
 }
 
 

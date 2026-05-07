@@ -1,6 +1,15 @@
+const path = require('path');
+// Esto fuerza a buscar el archivo .env en la raíz absoluta
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env') }); 
+
+console.log("--- TEST DE VARIABLES ---");
+console.log("CLIENT_ID:", process.env.PAYPAL_CLIENT_ID ? "CARGADO CORRECTAMENTE" : "SIGUE VACÍO");
+
 const request = require('request');
 const PaypalPlan = require('../models/paypalPlan');
 const Profile = require('../models/profile');
+const axios = require('axios');
+
 
 const CLIENT = process.env.PAYPAL_CLIENT_ID;
 const SECRET = process.env.PAYPAL_SECRET;
@@ -15,8 +24,6 @@ const auth = {
 //para crear el plan primero hay que generar el producto, 
 //el cual da como resultado :data : {id: PROD-4A346540KG295494N}
 
-
-const axios = require('axios'); // Recomendado sobre 'request' (que está deprecado)
 
 const createProduct = async (req, res) => {
     try {
@@ -498,17 +505,50 @@ const getSubcriptions = (req, res) => {
         });
 };
 
-const getSubcriptionbyId = (req, res) => {
-    const { body } = req;
-    const id = req.params.id;
-    request.get(`${PAYPAL_API}/v1/billing/subscriptions/${id}`, {
-        auth,
-        body: {},
-        json: true
-    }, (err, response) => {
-        res.json({ subcription: response.body });
+const getSubcriptionbyId = async (req, res) => {
+    const { id } = req.params;
+
+    console.log("ClientID cargado:", process.env.PAYPAL_CLIENT_ID ? "SÍ" : "NO");
+
+    try {
+        const token = await getPayPalAccessToken(); // Obtenemos el token primero
+
+        const response = await axios({
+            url: `${PAYPAL_API}/v1/billing/subscriptions/${id}`,
+            method: 'get',
+            headers: {
+                'Authorization': `Bearer ${token}`, // Usamos el token generado
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+        });
+
+        res.json({ subscription: response.data });
+    } catch (error) {
+    // Esto te dirá exactamente qué falló en tu terminal
+    console.log("--- ERROR COMPLETO ---");
+    if (error.response) {
+        // El servidor de PayPal respondió con un código de error (400, 401, 404, etc.)
+        console.log("Data:", error.response.data);
+        console.log("Status:", error.response.status);
+    } else if (error.request) {
+        // La petición se hizo pero no hubo respuesta (Problema de red o URL mal escrita)
+        console.log("No hubo respuesta de PayPal. Revisa tu conexión o la URL.");
+    } else {
+        // Algo pasó al configurar la petición
+        console.log("Error de configuración:", error.message);
+    }
+    
+    res.status(500).json({
+        error: 'Fallo al obtener la suscripción',
+        mensaje_tecnico: error.message,
+        detalles: error.response?.data || 'Sin respuesta del servidor'
     });
+}
+
 };
+
+
 
 const borrarProduct = async (req, res) => {
 
@@ -530,6 +570,38 @@ const borrarProduct = async (req, res) => {
     });
 };
 
+const getPayPalAccessToken = async () => {
+    // 1. Extraemos con nombres claros
+    const clientId = process.env.PAYPAL_CLIENT_ID;
+    const secret = process.env.PAYPAL_SECRET;
+
+    // 2. Verificación manual antes de usar .trim()
+    if (!clientId) {
+        throw new Error('Falta PAYPAL_CLIENT_ID en las variables de entorno');
+    }
+    if (!secret) {
+        throw new Error('Falta PAYPAL_SECRET en las variables de entorno');
+    }
+
+    // 3. Ahora sí usamos trim con seguridad
+    const auth = Buffer.from(`${clientId.trim()}:${secret.trim()}`).toString('base64');
+    
+    try {
+        const response = await axios({
+            url: process.env.PAYPAL_API,
+            method: 'post',
+            headers: {
+                'Authorization': `Basic ${auth}`,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            data: 'grant_type=client_credentials'
+        });
+        return response.data.access_token;
+    } catch (error) {
+        console.error('Error en PayPal Auth:', error.response?.data || error.message);
+        throw error;
+    }
+};
 
 
 

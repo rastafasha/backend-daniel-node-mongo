@@ -24,7 +24,7 @@ const profileSchema = Schema({
     subcription: [{ type: Schema.Types.ObjectId, ref: 'Subcriptionpaypal' }],
     articulosVistos: { type: Number, default: 0 },
     paypalSubscriptionId: { type: String, required: false }, // Para identificar el perfil en el webhook
-    plan: { type: String, default: 'free' }, // 'free' o 'premium'
+    plan: { type: String, default: 'free' }, // 'free', 'mensual', 'trimestral', 'anual'
     fechaReinicio: { type: Date, default: Date.now }, // Para resetear los 3 artículos cada mes
 }, { collection: 'profiles' });
 

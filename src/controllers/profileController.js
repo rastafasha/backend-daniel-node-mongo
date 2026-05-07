@@ -199,6 +199,27 @@ const activarPlanGratuitoInterno = async (req, res) => {
     }
 };
 
+const saveSubscriptionId = async (req, res) => {
+    try {
+        const { uid, subscriptionId } = req.body;
+        
+        const profile = await Profile.findOneAndUpdate(
+            { user: uid }, // O el campo que uses para identificar al dueño del perfil
+            { paypalSubscriptionId: subscriptionId },
+            { new: true }
+        );
+
+        if (!profile) {
+            return res.status(404).json({ ok: false, msg: 'Perfil no encontrado' });
+        }
+
+        res.json({ ok: true, profile });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ ok: false, msg: 'Error al guardar suscripción' });
+    }
+};
+
 
 
 
@@ -210,7 +231,8 @@ module.exports = {
     actualizarProfile,
     borrarProfile,
     listarProfilePorUsuario,
-    activarPlanGratuitoInterno
+    activarPlanGratuitoInterno,
+    saveSubscriptionId
 
 
 };
