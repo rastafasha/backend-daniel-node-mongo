@@ -2,7 +2,7 @@ const { response } = require('express');
 const Blog = require('../models/blog');
 const Categoria = require('../models/categoria');
 const Profile = require('../models/profile');
-
+const Favorito = require('../models/favorito');
 
 const getBlogs = async (req, res) => {
 
@@ -278,7 +278,7 @@ function listar_newestPaginados(req, res) {
     const page = parseInt(req.query.page) || 1;
     const limit = 4; // Tu límite actual
     const skip = (page - 1) * limit; // Cuántos posts saltar
-
+    
     Blog.find({ status: ['Activo'] })
         .populate('usuario', 'email uid username')
         .populate('categoria', 'nombre _id')
@@ -314,9 +314,10 @@ function listar_newest(req, res) {
         });
 }
 
+
 async function find_by_slug(req, res) {
     const slug = req.params['slug'];
-    const uid = req.uid; 
+    const uid = req.uid;
 
     try {
         const blog_data = await Blog.findOne({ slug: slug })
@@ -325,34 +326,40 @@ async function find_by_slug(req, res) {
 
         if (!blog_data) return res.status(404).send({ message: 'No existe' });
 
-        // 1. Si no hay login, mandamos el blog pero con contenido bloqueado
-        if (!uid) {
-            return res.status(200).send({ blog: blog_data, fullContent: false });
+        // Valores por defecto (Bloqueado)
+        let fullContent = false;
+        let esFavorito = false;
+
+        if (uid) {
+            // Buscamos favorito
+            const existeFav = await Favorito.findOne({ usuario: uid, blog: blog_data._id });
+            esFavorito = !!existeFav;
+
+            // Buscamos perfil
+            const perfil = await Profile.findOne({ usuario: uid });
+
+            if (perfil) {
+                // Solo si el perfil existe, evaluamos si liberamos el contenido
+                const esPremium = perfil.plan === 'premium';
+                const haComprado = perfil.pagos?.includes(blog_data._id);
+                const tieneCreditosGratis = perfil.articulosVistos < 3;
+
+                if (esPremium || haComprado || tieneCreditosGratis) {
+                    fullContent = true;
+                }
+            } else {
+                console.log("Perfil no encontrado para el UID:", uid);
+                // No cortamos la ejecución, simplemente dejamos fullContent = false
+            }
         }
 
-        // 2. Buscamos el Perfil
-        const perfil = await Profile.findOne({ usuario: uid });
-
-        // 3. Verificamos si es Premium (Usando el campo que actualiza tu Webhook)
-        const esPremium = perfil.plan === 'premium';
-
-        // 4. Verificamos si compró este artículo individualmente
-        const haComprado = perfil.pagos.includes(blog_data._id);
-
-        // 5. Verificamos el contador (Si el middleware lo dejó pasar, es que tiene créditos)
-        const tieneCreditosGratis = perfil.articulosVistos <= 3;
-
-        // RESULTADO FINAL: Si es premium, o lo compró, o aún tiene sus 3 créditos...
-        if (esPremium || haComprado || tieneCreditosGratis) {
-            return res.status(200).send({ 
-                blog: blog_data, 
-                fullContent: true,
-                plan: perfil.plan // Para que Angular sepa el estado
-            });
-        }
-
-        // 6. Por seguridad, si nada de lo anterior se cumple
-        return res.status(200).send({ blog: blog_data, fullContent: false });
+        // RESPUESTA GARANTIZADA: El blog siempre viaja aquí
+        return res.status(200).send({ 
+            ok: true, 
+            blog: blog_data, 
+            fullContent: fullContent, 
+            esFavorito: esFavorito 
+        });
 
     } catch (err) {
         res.status(500).send({ message: 'Error', err });
@@ -378,38 +385,48 @@ const listarBlogPorUsuario = (req, res) => {
         }
     }).populate('usuario');
 }
-const listarBlogPorCategoria = (req, res) => {
-    var nombre = req.params['nombre'];
-    // 1. Obtenemos la página de la URL (ej: /recientes?page=2). 
-    // Si no viene nada, por defecto es la 1.
-    const page = parseInt(req.query.page) || 1;
-    const limit = 4; // Tu límite actual
-    const skip = (page - 1) * limit; // Cuántos posts saltar
 
-    Blog.find({ categoria: nombre })
-        .populate('usuario', 'email uid username')
-        .populate('categoria', 'nombre _id')
-        .sort({ createdAt: -1 })
-        .skip(skip)   // <-- Nos saltamos los ya cargados
-        .limit(limit) // <-- Traemos los siguientes 4
-        .exec((err, data) => {
-            if (err) {
-                return res.status(500).send({ ok: false, message: 'Error en el servidor' });
-            }
-            
-            if (data) {
-                // Es buena práctica enviar 'ok: true' para que coincida con tu map del frontend
-                res.status(200).send({ 
-                    ok: true,
-                    blogs: data 
-                });
-            } else {
-                res.status(404).send({ ok: false, blogs: [] });
-            }
+async function listarBlogPorCategoria(req, res) {
+    const nombre = req.params['nombre'];
+    const uid = req.uid;
+    const page = parseInt(req.query.page) || 1;
+    const limit = 4;
+    const skip = (page - 1) * limit;
+
+    try {
+        // 1. Buscamos los blogs
+        const blogs = await Blog.find({ categoria: nombre })
+            .populate('usuario', 'email uid username')
+            .populate('categoria', 'nombre _id')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        // 2. Si el usuario está logueado, obtenemos sus favoritos
+        let favoritosIds = [];
+        if (uid) {
+            const misFavoritos = await Favorito.find({ usuario: uid }, 'blog');
+            favoritosIds = misFavoritos.map(fav => fav.blog.toString());
+        }
+
+        // 3. Mapeamos los blogs para añadirles la propiedad 'esFavorito' individualmente
+        const dataConFavoritos = blogs.map(blog => {
+            const blogObj = blog.toObject(); // Convertimos a objeto plano para poder añadirle campos
+            blogObj.esFavorito = favoritosIds.includes(blog._id.toString());
+            return blogObj;
         });
 
+        res.status(200).send({
+            ok: true,
+            blogs: dataConFavoritos
+        });
 
+    } catch (err) {
+        console.log(err);
+        res.status(500).send({ ok: false, message: 'Error en el servidor' });
+    }
 }
+
 
 
 const listar_best_sellers = (req, res) => {

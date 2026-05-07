@@ -3,22 +3,27 @@ const Favorito = require('../models/favorito');
 const Profile = require('../models/profile');
 
 const crearFavorito = async(req, res) => {
-    const uid = req.uid; // El ID del usuario que viene del token
-    
-    // 1. Creamos la instancia del favorito
-    const favorito = new Favorito({ 
-        usuario: uid, 
-        ...req.body 
-    });
+    const uid = req.uid;
+    const { blog } = req.body; // Extraemos el ID del blog del body
 
     try {
-        // 2. Guardamos el favorito en su colección
+        // 1. Verificamos si ya existe para evitar duplicados
+        const existe = await Favorito.findOne({ usuario: uid, blog: blog });
+        
+        if (existe) {
+            return res.status(400).json({
+                ok: false,
+                msg: 'Este artículo ya está en tus favoritos'
+            });
+        }
+
+        // 2. Si no existe, lo creamos
+        const favorito = new Favorito({ usuario: uid, blog });
         const favoritoDB = await favorito.save();
 
-        // 3. ACTUALIZACIÓN AQUÍ: 
-        // Usamos 'uid' (que ya tienes) y 'favoritoDB._id' (que es el objeto recién creado)
+        // 3. Actualizamos el perfil con el ID del favorito recién creado
         await Profile.updateOne(
-            { usuario: uid }, 
+            { usuario: uid },
             { $push: { favoritos: favoritoDB._id } }
         );
 
@@ -29,12 +34,10 @@ const crearFavorito = async(req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.status(500).json({
-            ok: false,
-            msg: 'Hable con el administrador'
-        });
+        res.status(500).json({ ok: false, msg: 'Hable con el administrador' });
     }
 };
+
 
 
 const actualizarFavorito = async(req, res) => {
