@@ -16,6 +16,8 @@ const handlePaypalWebhook = async (req, res) => {
                     'P-0H354334ME8148454MTFK3YI': 'trimestral',
                     'P-1PJ18025B84179353MTF4PKQ': 'anual'
                 };
+                const idPerfil = resource.custom_id; // Es el '69eaab...' de tu imagen
+                const subIdPaypal = resource.id;    // Es el 'I-ASP5X...' de tu imagen
 
                 const planComprado = planMapping[resource.plan_id] || 'premium'; // 'premium' por defecto
 
@@ -34,19 +36,21 @@ const handlePaypalWebhook = async (req, res) => {
                     );
                 }
                 const nuevaSub = await Subcriptionpaypal.create({
-                    email: resource.subscriber.email_address, // Email de la cuenta PayPal del cliente
-                    monto: parseFloat(resource.billing_info.last_payment.amount.value),
-                    orderID: resource.id, // El "I-XXXX" de la suscripción
+                    email: resource.subscriber.email_address, // sb-oxcit... de tu imagen
+                    monto: resource.billing_info?.last_payment?.amount?.value || 0,
+                    orderID: subIdPaypal,
                     payerID: resource.subscriber.payer_id,
-                    plan_id: resource.plan_id, // El "P-XXXX"
-                    status: resource.status, // "ACTIVE"
-                    usuario: profile.usuario, // El ID de tu DB
+                    plan_id: resource.plan_id,
+                    status: 'ACTIVE',
+                    usuario: idPerfil, // Lo vinculamos al perfil directamente
                     create_time: resource.create_time
                 });
 
                 // Luego lo vinculas al perfil
-                await Profile.findByIdAndUpdate(profile._id, {
-                    $push: { subcription: nuevaSub._id }
+                await Profile.findByIdAndUpdate(idPerfil, {
+                    paypalSubscriptionId: subIdPaypal,
+                    plan: 'mensual', // O el mapeo que ya tienes
+                    $push: { subcription: nuevaSub._id } // IMPORTANTE: Metemos el ID en el array
                 });
                 console.log(`Perfil actualizado a ${planComprado}: ${resource.id}`);
                 break;
