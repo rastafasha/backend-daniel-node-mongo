@@ -163,14 +163,15 @@ const listarProfilePorUsuario = async (req, res) => {
         if (!profile_data) {
             return res.status(404).send({ message: 'No se encontró el perfil' });
         }
-        const esPremium = profile_data.subcription.some(sub => sub.status === 'ACTIVE');
+        const esPremium = profile_data.subcription?.some(sub => sub.status === 'ACTIVE') || false;
         res.status(200).send({
             profile: profile_data,
             esPremium: esPremium,
             quedanGratis: Math.max(0, 3 - profile_data.articulosVistos)
         });
     } catch (err) {
-        res.status(500).send({ error: err });
+        console.error(err); // Útil para ti en la terminal
+    res.status(500).send({ message: 'Error en el servidor', error: err.message });
     }
 };
 //plan gratuito paypal por defecto
@@ -224,6 +225,7 @@ const saveSubscriptionId = async (req, res) => {
 
 
 
+
 module.exports = {
     crearProfile,
     getProfiles,
@@ -232,7 +234,8 @@ module.exports = {
     borrarProfile,
     listarProfilePorUsuario,
     activarPlanGratuitoInterno,
-    saveSubscriptionId
+    saveSubscriptionId,
+    
 
 
 };

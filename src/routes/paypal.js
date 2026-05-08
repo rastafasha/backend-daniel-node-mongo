@@ -21,18 +21,19 @@ const {
    desactivatePlan,
    getProductsByPage,
    getPlanesPorPagina,
-   getSubcriptions,
    getSubcriptionbyId,
    borrarProduct,
+   getPaypalSubscription
    
 } = require('../controllers/paypalController');
 const { validarJWT } = require('../middlewares/validar-jwt');
 
 router.get('/plans', getPlans);
 router.get('/plan/:id', getPlanbyId);
-router.get('/subcriptions', getSubcriptions);
 router.get('/subcription/:id', getSubcriptionbyId);
 router.get('/product/:id', getProductsbyId);
+router.get('/user_subcription/:id', getPaypalSubscription);
+
 router.get('/products', getProducts);
 router.get('/planes-paypal', getPlanesPorPagina);
 router.get('/products-paypal', getProductsByPage);

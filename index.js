@@ -86,7 +86,6 @@ app.use('/api/paises', require('./src/routes/pais'));
 
 app.use('/api/paypal', require('./src/routes/paypal'));
 app.use('/api/subcriptionpaypal', require('./src/routes/subcripcionpaypaldb'));
-app.use('/api/subcriptionpaypal', require('./src/routes/subcripcionpaypaldb'));
 app.use('/api/webhooks', require('./src/routes/webhook-paypal'));
 
 

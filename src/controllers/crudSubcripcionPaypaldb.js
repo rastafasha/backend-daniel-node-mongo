@@ -152,20 +152,26 @@ function activar(req, res) {
 }
 
 
-const listarPorUsuario = (req, res) => {
-    var id = req.params['id'];
-    Subcriptionpaypal.find({ usuario: id }, (err, subcription_data) => {
-        if (!err) {
-            if (subcription_data) {
-                res.status(200).send({ subcriptions: subcription_data });
-            } else {
-                res.status(500).send({ error: err });
-            }
+const listarPorUsuario = async (req, res) => {
+    try {
+        const id = req.params['id'];
+        
+        // Usamos await en lugar de callback
+        const subcription_data = await Subcriptionpaypal.find({ usuario: id })
+            .populate('usuario')
+            .exec();
+
+        if (subcription_data && subcription_data.length > 0) {
+            res.status(200).send({ subcriptions: subcription_data });
         } else {
-            res.status(500).send({ error: err });
+            // Caso donde el usuario no tiene suscripciones aún
+            res.status(404).send({ message: 'No se encontraron suscripciones para este usuario.' });
         }
-    }).populate('usuario');
-}
+    } catch (err) {
+        // Captura errores de conexión o de formato de ID
+        res.status(500).send({ error: 'Error en el servidor', detalle: err.message });
+    }
+};
 
 module.exports = {
     getSubcriptionPlanPaypals,

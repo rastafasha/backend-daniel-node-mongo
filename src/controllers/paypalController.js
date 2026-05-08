@@ -1,10 +1,5 @@
 const path = require('path');
-// Esto fuerza a buscar el archivo .env en la raíz absoluta
 require('dotenv').config({ path: path.resolve(__dirname, '../../.env') }); 
-
-console.log("--- TEST DE VARIABLES ---");
-console.log("CLIENT_ID:", process.env.PAYPAL_CLIENT_ID ? "CARGADO CORRECTAMENTE" : "SIGUE VACÍO");
-
 const request = require('request');
 const PaypalPlan = require('../models/paypalPlan');
 const Profile = require('../models/profile');
@@ -490,20 +485,28 @@ const getProductsByPage = (req, res) => {
 };
 
 
-//subcriptions
-const getSubcriptions = (req, res) => {
-    // const token = req.query.token;
-    // console.log(`${PAYPAL_API}/v2/checkout/orders/${token}/capture`);
-    const { body } = req;
-    request.get(`${PAYPAL_API}/v1/billing/subscriptions`, {
+const borrarProduct = async (req, res) => {
+
+    const id = req.params.id;
+    const data = [
+        {
+            op: "replace",
+            path: "/name",
+            value: "OBSOLETO - " + req.body.name // Le cambias el nombre para identificarlo
+        }
+    ];
+
+    request.patch(`${PAYPAL_API}/v1/catalogs/products/${id}`, {
         auth,
-        body: body,
+        body: data,
         json: true
-    },
-        (err, response) => {
-            res.json({ data: response.body });
-        });
+    }, (err, response) => {
+        res.json({ ok: true, msg: "Producto marcado como obsoleto" });
+    });
 };
+
+//subcriptions
+
 
 const getSubcriptionbyId = async (req, res) => {
     const { id } = req.params;
@@ -550,26 +553,6 @@ const getSubcriptionbyId = async (req, res) => {
 
 
 
-const borrarProduct = async (req, res) => {
-
-    const id = req.params.id;
-    const data = [
-        {
-            op: "replace",
-            path: "/name",
-            value: "OBSOLETO - " + req.body.name // Le cambias el nombre para identificarlo
-        }
-    ];
-
-    request.patch(`${PAYPAL_API}/v1/catalogs/products/${id}`, {
-        auth,
-        body: data,
-        json: true
-    }, (err, response) => {
-        res.json({ ok: true, msg: "Producto marcado como obsoleto" });
-    });
-};
-
 const getPayPalAccessToken = async () => {
     // 1. Extraemos con nombres claros
     const clientId = process.env.PAYPAL_CLIENT_ID;
@@ -602,6 +585,25 @@ const getPayPalAccessToken = async () => {
         throw error;
     }
 };
+const getPaypalSubscription = async (subscriptionId) => {
+    const accessToken = 'TU_ACCESS_TOKEN_AQUI'; // Debes generarlo con tu ClientID y Secret
+    const url = `${PAYPAL_API}/${subscriptionId}`;
+
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        const data = await response.json();
+        return data; // Aquí vendrá el status (ACTIVE, SUSPENDED, etc.)
+    } catch (error) {
+        console.error("Error al consultar PayPal:", error);
+    }
+};
+
 
 
 
@@ -621,7 +623,7 @@ module.exports = {
     desactivatePlan,
     getPlanesPorPagina,
     getProductsByPage,
-    getSubcriptions,
     getSubcriptionbyId,
     borrarProduct,
+    getPaypalSubscription
 };
