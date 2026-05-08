@@ -44,6 +44,7 @@ router.post('/create-product', createProduct);
 
 router.post('/create-plan', createPlan);
 router.post('/generate-subscription', generateSubscription);
+router.post('/execute-payment', executePayment);
 
 // Cambiamos .patch por .post
 router.post('/activar-plan/:id', activatePlan);
@@ -53,7 +54,6 @@ router.post('/desactivar-plan/:id', desactivatePlan);
 router.patch('/editar-product/:id', updatePproduct);
 router.patch('/editar-plan/:id', updatePlan);
 
-router.get('/execute-payment', executePayment);
 router.delete('/productborrar/:id', borrarProduct);
 
 
