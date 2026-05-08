@@ -149,13 +149,10 @@ const listarProfilePorUsuario = async (req, res) => {
     try {
         const profile_data = await Profile.findOne({ usuario: req.params.id })
             .populate('usuario')
-            .populate('subcription')
-            .populate({
-                path: 'favoritos',
-                populate: {
-                    path: 'blog', // Esto trae los datos del blog dentro del favorito
-                    model: 'Blog'
-                }
+            .populate('subcription') // Trae los documentos del modelo SubcriptionPaypal
+            .populate({ 
+                path: 'favoritos', 
+                populate: { path: 'blog', model: 'Blog' } 
             })
             .populate('pagos')
             .populate('blog');
@@ -163,17 +160,27 @@ const listarProfilePorUsuario = async (req, res) => {
         if (!profile_data) {
             return res.status(404).send({ message: 'No se encontró el perfil' });
         }
+
+        // 1. Ordenar suscripciones: La más nueva arriba (basado en createdAt)
+        if (profile_data.subcription && profile_data.subcription.length > 0) {
+            profile_data.subcription.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        }
+
+        // 2. Verificar estado Premium (buscamos si alguna en el historial está ACTIVE)
         const esPremium = profile_data.subcription?.some(sub => sub.status === 'ACTIVE') || false;
-        res.status(200).send({
-            profile: profile_data,
-            esPremium: esPremium,
-            quedanGratis: Math.max(0, 3 - profile_data.articulosVistos)
+
+        res.status(200).send({ 
+            profile: profile_data, 
+            esPremium: esPremium, 
+            quedanGratis: Math.max(0, 3 - (profile_data.articulosVistos || 0)) 
         });
+
     } catch (err) {
-        console.error(err); // Útil para ti en la terminal
-    res.status(500).send({ message: 'Error en el servidor', error: err.message });
+        console.error("Error en listarProfilePorUsuario:", err);
+        res.status(500).send({ message: 'Error en el servidor', error: err.message });
     }
 };
+
 //plan gratuito paypal por defecto
 const activarPlanGratuitoInterno = async (req, res) => {
     try {

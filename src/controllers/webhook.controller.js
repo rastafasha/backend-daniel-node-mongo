@@ -33,35 +33,84 @@ const handlePaypalWebhook = async (req, res) => {
                         }
                     );
                 }
+                const nuevaSub = await Subcriptionpaypal.create({
+                    email: resource.subscriber.email_address, // Email de la cuenta PayPal del cliente
+                    monto: parseFloat(resource.billing_info.last_payment.amount.value),
+                    orderID: resource.id, // El "I-XXXX" de la suscripción
+                    payerID: resource.subscriber.payer_id,
+                    plan_id: resource.plan_id, // El "P-XXXX"
+                    status: resource.status, // "ACTIVE"
+                    usuario: profile.usuario, // El ID de tu DB
+                    create_time: resource.create_time
+                });
+
+                // Luego lo vinculas al perfil
+                await Profile.findByIdAndUpdate(profile._id, {
+                    $push: { subcription: nuevaSub._id }
+                });
                 console.log(`Perfil actualizado a ${planComprado}: ${resource.id}`);
                 break;
             case 'PAYMENT.SALE.COMPLETED':
-                // El ID de suscripción en este evento específico se llama 'billing_agreement_id'
+                // Para los cobros mensuales de la suscripción
                 const subId = resource.billing_agreement_id;
 
-                // Usamos el mismo mapeo de antes para saber qué plan poner
-                const planPago = planMapping[resource.plan_id] || 'premium';
+                try {
+                    const profile = await Profile.findOne({ paypalSubscriptionId: subId });
 
-                await Profile.findOneAndUpdate(
-                    { paypalSubscriptionId: subId },
-                    {
-                        plan: planPago,
-                        // Opcional: podrías guardar la fecha del último pago
-                        ultimoPago: new Date()
+                    if (profile) {
+                        const nuevoPagoMensual = await Pago.create({
+                            referencia: resource.id, // ID de la transacción mensual
+                            monto: parseFloat(resource.amount.total),
+                            usuario: profile.usuario,
+                            status: 'SUCCESS',
+                            validacion: 'COMPLETED',
+                            // Importante: vinculamos este pago a la suscripción
+                            subcriptionPaypal: profile.subcription[0]
+                        });
+
+                        profile.pagos.push(nuevoPagoMensual._id);
+                        await profile.save();
+
+                        console.log(`Mensualidad registrada para suscripción: ${subId}`);
                     }
-                );
-                console.log(`Pago mensual confirmado para suscripción: ${subId}`);
+                } catch (err) {
+                    console.error("Error al procesar pago de suscripción:", err);
+                }
                 break;
 
-            case 'BILLING.SUBSCRIPTION.CANCELLED':
-            case 'BILLING.SUBSCRIPTION.EXPIRED':
-            case 'BILLING.SUBSCRIPTION.SUSPENDED': // Agregado por seguridad
-                await Profile.findOneAndUpdate(
-                    { paypalSubscriptionId: resource.id },
-                    { plan: 'free', articulosVistos: 0 }
-                );
-                console.log(`Suscripción terminada: ${resource.id}`);
+            // --- CASO COMPRAS ÚNICAS (Ej: Acceso de por vida o eBook) ---
+            case 'PAYMENT.CAPTURE.COMPLETED':
+                // Para compras únicas (eBooks, blogs, accesos directos)
+                const perfilId = resource.custom_id;
+                const transaccionId = resource.id; // La referencia de PayPal
+
+                try {
+                    // 1. Buscamos el perfil para obtener el ID de 'usuario' (necesario para tu modelo Pago)
+                    const profile = await Profile.findById(perfilId);
+
+                    if (profile) {
+                        // 2. Creamos el documento de Pago
+                        const nuevoPago = await Pago.create({
+                            referencia: transaccionId,
+                            monto: parseFloat(resource.amount.value),
+                            usuario: profile.usuario, // Relación con Usuario
+                            status: 'SUCCESS',
+                            validacion: 'COMPLETED',
+                            blog: profile.blog // O el ID del blog específico si lo pasas en el custom_id
+                        });
+
+                        // 3. Lo vinculamos al array 'pagos' del perfil
+                        profile.pagos.push(nuevoPago._id);
+                        await profile.save();
+
+                        console.log(`Pago único registrado: ${transaccionId}`);
+                    }
+                } catch (err) {
+                    console.error("Error al procesar el pago único:", err);
+                }
                 break;
+
+
         }
     } catch (error) {
         console.error('Error procesando Webhook:', error);

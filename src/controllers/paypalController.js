@@ -263,34 +263,36 @@ const updatePlan = (req, res) => {
 
 // opcionales
 
-
+//compras unicas
 const createPayment = (req, res) => {
-
-    const { body } = req
+    const { body, user_id, article_id } = req.body; // Asegúrate de enviar estos desde el front
 
     const pago = {
         intent: 'CAPTURE',
         purchase_units: [{
             amount: {
                 currency_code: 'USD',
-                value: body.value,
-                custom_id: `${user._id}|${article._id}`
-            }
+                value: body.value // Ejemplo: "10.00"
+            },
+            // IMPORTANTE: El custom_id es clave para tu Webhook
+            custom_id: `${user_id}|${article_id}` 
         }],
         application_context: {
-            brand_name: process.env.BRAND_NAME, //nombre de la empresa
-            landing_page: 'NO_PREFERENCE', //default, para mas informacion https://developer.paypal.com/doc/api
-            user_action: 'PAY_NOW', //accion para que en paypal muestre el monto del pago
-            return_url: process.env.RETURN_URL, //url despues de realizar el pago
-            cancel_url: process.env.CANCEL_URL, //url despues de ralizar el pago
-
+            brand_name: process.env.BRAND_NAME,
+            landing_page: 'NO_PREFERENCE',
+            user_action: 'PAY_NOW',
+            return_url: process.env.RETURN_URL,
+            cancel_url: process.env.CANCEL_URL,
         }
     };
+
+    // Usando la API v2 de PayPal
     request.post(`${PAYPAL_API}/v2/checkout/orders`, {
         auth,
         body: pago,
         json: true
     }, (err, response) => {
+        if (err) return res.status(500).json({ error: err.message });
         res.json({ data: response.body });
     });
 };
