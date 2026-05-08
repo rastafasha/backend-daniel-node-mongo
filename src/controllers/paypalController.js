@@ -299,20 +299,31 @@ const createPayment = (req, res) => {
 
 //captura el dinero
 const executePayment = (req, res) => {
-    // El token es el orderID que te manda Angular
-    const token = req.params.token || req.body.token; 
+    const token = req.params.token; // El ID que envió el front: 8A514055UT380242A
 
     request.post(`${PAYPAL_API}/v2/checkout/orders/${token}/capture`, {
-        auth, // Tu Secret Key de PayPal
-        body: {},
+        // IMPORTANTE: Asegúrate de que 'auth' tenga tu user y pass de Sandbox
+        auth: {
+            user: process.env.PAYPAL_CLIENT_ID,
+            pass: process.env.PAYPAL_CLIENT_SECRET
+        },
+        headers: {
+            'Content-Type': 'application/json'
+        },
         json: true
     }, (err, response) => {
         if (err) return res.status(500).json({ error: err.message });
-        
-        // Esta respuesta le dirá a Angular que todo salió bien
-        res.json({ data: response.body });
+
+        // Si hay un error 400, aquí veremos qué dice PayPal realmente
+        if (response.statusCode !== 201 && response.statusCode !== 200) {
+            console.log("Detalle del error PayPal:", response.body);
+            return res.status(response.statusCode).json(response.body);
+        }
+
+        res.json({ ok: true, data: response.body });
     });
 };
+
 
 
 
