@@ -232,41 +232,42 @@ const saveSubscriptionId = async (req, res) => {
 
 const sincronizarSuscripcionExistente = async (req, res) => {
     try {
-        const { idPerfil } = req.params; // El ID del documento Profile
+        const { idPerfil } = req.params; // Aquí recibes el "69eaab..."
 
-        // 1. Buscamos el perfil que ya tiene el ID de ayer
-        const profile = await Profile.findById(idPerfil);
+        // 1. Buscamos por el ID del usuario que está dentro del profile
+        const profile = await Profile.findOne({ usuario: idPerfil });
 
-        
-
-        if (!profile || !profile.paypalSubscriptionId) {
-            return res.status(404).send({ message: 'Perfil no encontrado o no tiene ID de PayPal' });
+        if (!profile) {
+            return res.status(404).send({ message: 'No existe un perfil para este ID de usuario' });
         }
 
-        // 2. Creamos el documento en la colección 'subcriptions'
-        // Usamos los datos que ya tenemos y completamos con datos de prueba/ayer
+        // 2. Crear la suscripción (asegúrate de importar el modelo Subcriptionpaypal)
         const nuevaSub = await Subcriptionpaypal.create({
-            email: profile.emailPaypal || 'correo@ejemplo.com',
-            monto: 0, // Ajusta el monto si lo conoces
-            orderID: profile.paypalSubscriptionId, // El I-ASP5X...
-            payerID: 'SINCRONIZADO_MANUAL',
-            plan_id: 'P-8CJ06585H1246910MMSOZQNA', // Tu ID de plan mensual
+            email: "sb-oxcit51039797@personal.example.com",
+            monto: 0,
+            orderID: "I-ASP5X4YGDWJ1",
+            payerID: "FIX_MANUAL",
+            plan_id: "P-8CJ06585H1246910MMSOZQNA",
             status: 'ACTIVE',
-            usuario: profile.usuario,
+            usuario: idPerfil,
             create_time: new Date()
         });
 
-        // 3. Empujamos el ID de la nueva suscripción al array del perfil
+        // 3. Vincular y forzar estado premium
         profile.subcription.push(nuevaSub._id);
-        profile.plan = 'mensual'; // Aseguramos que el plan no sea 'free'
+        profile.plan = 'mensual';
+        profile.paypalSubscriptionId = "I-ASP5X4YGDWJ1";
         await profile.save();
 
-        res.status(200).send({ message: 'Sincronización exitosa', subId: nuevaSub._id });
+        return res.status(200).send({ message: 'Sincronización exitosa', subId: nuevaSub._id });
 
     } catch (err) {
-        res.status(500).send({ error: err.message });
+        console.error(err);
+        // Siempre responder algo para que el navegador no se quede "pensando"
+        return res.status(500).send({ error: err.message });
     }
 };
+
 
 const fixSuscripcionAyer = async () => {
     const idPerfil = "69eaab0919ab9e7948b4bcbf"; // Sacado de tu imagen (Id. personalizada)
