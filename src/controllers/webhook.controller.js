@@ -2,7 +2,7 @@ const Profile = require('../models/profile');
 
 const handlePaypalWebhook = async (req, res) => {
     const { event_type, resource } = req.body;
-    
+
     // 1. Responder siempre 200 rápido para que PayPal no reintente
     res.status(200).send('OK');
 
@@ -27,13 +27,30 @@ const handlePaypalWebhook = async (req, res) => {
                 if (!profile && resource.subscriber && resource.subscriber.email_address) {
                     profile = await Profile.findOneAndUpdate(
                         { email: resource.subscriber.email_address },
-                        { 
-                            plan: planComprado, 
-                            paypalSubscriptionId: resource.id 
+                        {
+                            plan: planComprado,
+                            paypalSubscriptionId: resource.id
                         }
                     );
                 }
                 console.log(`Perfil actualizado a ${planComprado}: ${resource.id}`);
+                break;
+            case 'PAYMENT.SALE.COMPLETED':
+                // El ID de suscripción en este evento específico se llama 'billing_agreement_id'
+                const subId = resource.billing_agreement_id;
+
+                // Usamos el mismo mapeo de antes para saber qué plan poner
+                const planPago = planMapping[resource.plan_id] || 'premium';
+
+                await Profile.findOneAndUpdate(
+                    { paypalSubscriptionId: subId },
+                    {
+                        plan: planPago,
+                        // Opcional: podrías guardar la fecha del último pago
+                        ultimoPago: new Date()
+                    }
+                );
+                console.log(`Pago mensual confirmado para suscripción: ${subId}`);
                 break;
 
             case 'BILLING.SUBSCRIPTION.CANCELLED':
