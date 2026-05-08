@@ -270,29 +270,33 @@ const sincronizarSuscripcionExistente = async (req, res) => {
 
 
 const fixSuscripcionAyer = async () => {
-    const idPerfil = "69eaab0919ab9e7948b4bcbf"; // Sacado de tu imagen (Id. personalizada)
-    const subIdPaypal = "I-ASP5X4YGDWJ1";      // Sacado de tu imagen (Id. de suscripción)
+    const idUsuario = "69eaab0919ab9e7948b4bcbf"; // ID del usuario (Id. personalizada)
+    const subIdPaypal = "I-ASP5X4YGDWJ1";
 
     const nuevaSub = await Subcriptionpaypal.create({
-        email: "sb-oxcit51039797@personal.example.com", // El que sale en tu imagen
-        monto: 0, // O el monto del plan
+        email: "sb-oxcit51039797@personal.example.com",
+        monto: 10,
         orderID: subIdPaypal,
         payerID: "FIX_MANUAL",
-        plan_id: "P-8CJ06585H1246910MMSOZQNA", // Tu ID de plan mensual
+        plan_id: "P-8CJ06585H1246910MMSOZQNA",
         status: 'ACTIVE',
-        usuario: idPerfil,
+        usuario: idUsuario,
         create_time: new Date()
     });
 
-    // Lo metemos al array del perfil para que el .populate() lo encuentre
-    await Profile.findByIdAndUpdate(idPerfil, {
-        paypalSubscriptionId: subIdPaypal,
-        plan: 'mensual',
-        $push: { subcription: nuevaSub._id } 
-    });
+    // CAMBIO AQUÍ: Usar findOneAndUpdate buscando por el campo 'usuario'
+    await Profile.findOneAndUpdate(
+        { usuario: idUsuario }, 
+        { 
+            paypalSubscriptionId: subIdPaypal,
+            plan: 'mensual',
+            $push: { subcription: nuevaSub._id } 
+        }
+    );
 
-    console.log("¡Usuario sincronizado y ahora es Premium!");
+    console.log("¡Usuario sincronizado correctamente en su Perfil!");
 };
+
 
 
 
