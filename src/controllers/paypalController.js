@@ -299,14 +299,17 @@ const createPayment = (req, res) => {
 
 //captura el dinero
 const executePayment = (req, res) => {
-    const token = req.query.token;
-    // console.log(`${PAYPAL_API}/v2/checkout/orders/${token}/capture`);
+    // El token es el orderID que te manda Angular
+    const token = req.params.token || req.body.token; 
 
     request.post(`${PAYPAL_API}/v2/checkout/orders/${token}/capture`, {
-        auth,
+        auth, // Tu Secret Key de PayPal
         body: {},
         json: true
     }, (err, response) => {
+        if (err) return res.status(500).json({ error: err.message });
+        
+        // Esta respuesta le dirá a Angular que todo salió bien
         res.json({ data: response.body });
     });
 };
