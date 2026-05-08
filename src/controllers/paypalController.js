@@ -5,6 +5,13 @@ const PaypalPlan = require('../models/paypalPlan');
 const Profile = require('../models/profile');
 const axios = require('axios');
 
+// Verificación de credenciales en el Log de Render
+console.log("--- Verificación de PayPal en Render ---");
+console.log("API URL:", process.env.PAYPAL_API || "No definida");
+console.log("Client ID (inicio):", process.env.PAYPAL_CLIENT_ID ? process.env.PAYPAL_CLIENT_ID.substring(0, 10) + "..." : "No definido");
+console.log("Secret (inicio):", process.env.PAYPAL_CLIENT_SECRET ? process.env.PAYPAL_CLIENT_SECRET.substring(0, 5) + "..." : "No definido");
+console.log("---------------------------------------");
+
 
 const CLIENT = process.env.PAYPAL_CLIENT_ID;
 const SECRET = process.env.PAYPAL_SECRET;
