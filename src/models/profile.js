@@ -18,7 +18,7 @@ const profileSchema = Schema({
     direccion: { type: String, required: false },
     pais: { type: String, require: false, ref: 'Pais' },
     usuario: { type: Schema.Types.ObjectId, ref: 'Usuario' },
-    blog: [{ type: Schema.Types.ObjectId, ref: 'Blog' }],
+    blog: [{ type: Schema.Types.ObjectId, ref: 'Blog' }],// si es role editor, el blog le pertence, si no, debe comparlo y debe aparecer en pago
     favoritos: [{ type: Schema.Types.ObjectId, ref: 'Favorito' }],
     pagos: [{ type: Schema.Types.ObjectId, ref: 'Pago' }],
     subcription: [{ type: Schema.Types.ObjectId, ref: 'Subcriptionpaypal' }],

@@ -271,7 +271,6 @@ function activos(req, res) {
 }
 
 
-
 function listar_newestPaginados(req, res) {
     // 1. Obtenemos la página de la URL (ej: /recientes?page=2). 
     // Si no viene nada, por defecto es la 1.
@@ -303,18 +302,6 @@ function listar_newestPaginados(req, res) {
 }
 
 
-function listar_newest(req, res) {
-    Blog.find({ status: ['Activo'] })
-        .populate('usuario', 'email uid username')
-        .populate('categoria', 'nombre _id')
-        .sort({ createdAt: -1 }).limit(4).exec((err, data) => {
-            if (data) {
-                res.status(200).send({ blogs: data });
-            }
-        });
-}
-
-
 async function find_by_slug(req, res) {
     const slug = req.params['slug'];
     const uid = req.uid;
@@ -326,49 +313,49 @@ async function find_by_slug(req, res) {
 
         if (!blog_data) return res.status(404).send({ message: 'No existe' });
 
-        // Valores por defecto (Bloqueado)
         let fullContent = false;
         let esFavorito = false;
 
         if (uid) {
-            // Buscamos favorito
+            // 1. Verificar Favorito
             const existeFav = await Favorito.findOne({ usuario: uid, blog: blog_data._id });
             esFavorito = !!existeFav;
 
-            // Buscamos perfil
+            // 2. Verificar Acceso en Perfil
             const perfil = await Profile.findOne({ usuario: uid });
 
             if (perfil) {
-                // Solo si el perfil existe, evaluamos si liberamos el contenido
-                const esPremium = perfil.plan === 'premium';
-                const haComprado = perfil.pagos?.includes(blog_data._id);
+                // Ajuste: Tu plan ahora se llama 'Plan Mensual' según el fix anterior
+                const esPremium = perfil.plan !== 'free'; 
+                
+                // Ajuste: En tu modelo 'pagos' es un array de IDs de la colección Pago, no de Blogs.
+                // Aquí podrías verificar si el blog_data._id está en un campo específico si fuera compra única.
+                const haComprado = perfil.pagos?.includes(blog_data._id); 
+
                 const tieneCreditosGratis = perfil.articulosVistos < 3;
 
-                if (esPremium || haComprado || tieneCreditosGratis) {
+                if (esPremium || haComprado) {
                     fullContent = true;
+                } else if (tieneCreditosGratis) {
+                    fullContent = true;
+                    await perfil.save();
                 }
-            } else {
-                console.log("Perfil no encontrado para el UID:", uid);
-                // No cortamos la ejecución, simplemente dejamos fullContent = false
             }
         }
 
-        // RESPUESTA GARANTIZADA: El blog siempre viaja aquí
         return res.status(200).send({ 
             ok: true, 
             blog: blog_data, 
             fullContent: fullContent, 
-            esFavorito: esFavorito 
+            esFavorito: esFavorito,
+            quedanGratis: uid ? Math.max(0, 3 - (perfil?.articulosVistos || 0)) : 0
         });
 
     } catch (err) {
-        res.status(500).send({ message: 'Error', err });
+        console.error(err);
+        res.status(500).send({ message: 'Error en el servidor', error: err.message });
     }
 }
-
-
-
-
 
 
 const listarBlogPorUsuario = (req, res) => {
@@ -428,7 +415,6 @@ async function listarBlogPorCategoria(req, res) {
 }
 
 
-
 const listar_best_sellers = (req, res) => {
     Blog.find().sort({ ventas: -1 }).limit(8).exec((err, blog) => {
         if (blog) {
@@ -484,7 +470,6 @@ module.exports = {
     activar,
     destacados,
     find_by_slug,
-    listar_newest,
     listar_newestPaginados,
     listarBlogPorUsuario,
     listarBlogPorCategoria,

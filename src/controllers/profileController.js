@@ -34,7 +34,6 @@ const crearProfile = async (req, res) => {
     }
 };
 
-
 const actualizarProfile = async (req, res) => {
 
     const id = req.params.id;
@@ -83,8 +82,6 @@ const getProfiles = async (req, res) => {
     });
 };
 
-
-
 const getProfile = async (req, res) => {
 
     const id = req.params.id;
@@ -113,7 +110,6 @@ const getProfile = async (req, res) => {
         });
 
 };
-
 
 
 const borrarProfile = async (req, res) => {

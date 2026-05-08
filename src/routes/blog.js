@@ -15,7 +15,6 @@ const {
     destacados,
     activos,
     find_by_slug,
-    listar_newest,
     listarBlogPorUsuario,
     listarBlogPorCategoria,
     listar_best_sellers,
@@ -33,7 +32,6 @@ router.get('/', getBlogs);
 router.get('/destacados', destacados);
 router.get('/activos', activos);
 router.get('/find_by_slug/:slug', [validarJWTOpcional,verificarLimiteArticulos], find_by_slug);
-router.get('/recientes', listar_newest);
 router.get('/recientes_paginados', listar_newestPaginados);
 router.get('/user_blog/:id', listarBlogPorUsuario);
 router.get('/blog_categoria/:nombre', listarBlogPorCategoria);

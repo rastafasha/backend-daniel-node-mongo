@@ -1,4 +1,6 @@
 const Profile = require('../models/profile');
+const Pago = require('../models/pago');
+const Subcriptionpaypal = require('../models/subcriptionPaypal');
 
 const handlePaypalWebhook = async (req, res) => {
     const { event_type, resource } = req.body;
@@ -84,35 +86,34 @@ const handlePaypalWebhook = async (req, res) => {
 
             // --- CASO COMPRAS ÚNICAS (Ej: Acceso de por vida o eBook) ---
             case 'PAYMENT.CAPTURE.COMPLETED':
-                // Para compras únicas (eBooks, blogs, accesos directos)
-                const perfilId = resource.custom_id;
-                const transaccionId = resource.id; // La referencia de PayPal
+                // Separamos los IDs que vienen en el custom_id (Ej: "IDPERFIL|IDBLOG")
+                const [perfilId, blogId] = resource.custom_id.split('|');
+                const idTransaccion = resource.id;
 
                 try {
-                    // 1. Buscamos el perfil para obtener el ID de 'usuario' (necesario para tu modelo Pago)
-                    const profile = await Profile.findById(perfilId);
+                    const profile = await Profile.findById(idDelPerfil);
 
                     if (profile) {
-                        // 2. Creamos el documento de Pago
                         const nuevoPago = await Pago.create({
-                            referencia: transaccionId,
+                            referencia: idTransaccion,
                             monto: parseFloat(resource.amount.value),
-                            usuario: profile.usuario, // Relación con Usuario
+                            usuario: profile.usuario,
                             status: 'SUCCESS',
                             validacion: 'COMPLETED',
-                            blog: profile.blog // O el ID del blog específico si lo pasas en el custom_id
+                            // Ahora sí usamos el ID que extrajimos del custom_id
+                            blog: blogId ? [blogId] : [],
                         });
 
-                        // 3. Lo vinculamos al array 'pagos' del perfil
                         profile.pagos.push(nuevoPago._id);
                         await profile.save();
 
-                        console.log(`Pago único registrado: ${transaccionId}`);
+                        console.log(`Pago único registrado para blog: ${idDelBlogComprado}`);
                     }
                 } catch (err) {
                     console.error("Error al procesar el pago único:", err);
                 }
                 break;
+
 
 
         }
