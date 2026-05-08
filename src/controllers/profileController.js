@@ -237,6 +237,8 @@ const sincronizarSuscripcionExistente = async (req, res) => {
         // 1. Buscamos el perfil que ya tiene el ID de ayer
         const profile = await Profile.findById(idPerfil);
 
+        
+
         if (!profile || !profile.paypalSubscriptionId) {
             return res.status(404).send({ message: 'Perfil no encontrado o no tiene ID de PayPal' });
         }
@@ -266,6 +268,31 @@ const sincronizarSuscripcionExistente = async (req, res) => {
     }
 };
 
+const fixSuscripcionAyer = async () => {
+    const idPerfil = "69eaab0919ab9e7948b4bcbf"; // Sacado de tu imagen (Id. personalizada)
+    const subIdPaypal = "I-ASP5X4YGDWJ1";      // Sacado de tu imagen (Id. de suscripción)
+
+    const nuevaSub = await Subcriptionpaypal.create({
+        email: "sb-oxcit51039797@personal.example.com", // El que sale en tu imagen
+        monto: 0, // O el monto del plan
+        orderID: subIdPaypal,
+        payerID: "FIX_MANUAL",
+        plan_id: "P-8CJ06585H1246910MMSOZQNA", // Tu ID de plan mensual
+        status: 'ACTIVE',
+        usuario: idPerfil,
+        create_time: new Date()
+    });
+
+    // Lo metemos al array del perfil para que el .populate() lo encuentre
+    await Profile.findByIdAndUpdate(idPerfil, {
+        paypalSubscriptionId: subIdPaypal,
+        plan: 'mensual',
+        $push: { subcription: nuevaSub._id } 
+    });
+
+    console.log("¡Usuario sincronizado y ahora es Premium!");
+};
+
 
 
 
@@ -278,7 +305,8 @@ module.exports = {
     listarProfilePorUsuario,
     activarPlanGratuitoInterno,
     saveSubscriptionId,
-    sincronizarSuscripcionExistente
+    sincronizarSuscripcionExistente,
+    fixSuscripcionAyer
 
 
 };
