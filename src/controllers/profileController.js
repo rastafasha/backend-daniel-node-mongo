@@ -275,7 +275,7 @@ const fixSuscripcionAyer = async () => {
 
     const nuevaSub = await Subcriptionpaypal.create({
         email: "sb-oxcit51039797@personal.example.com",
-        monto: 10,
+        monto: 20.9,
         orderID: subIdPaypal,
         payerID: "FIX_MANUAL",
         plan_id: "P-8CJ06585H1246910MMSOZQNA",
@@ -289,7 +289,7 @@ const fixSuscripcionAyer = async () => {
         { usuario: idUsuario }, 
         { 
             paypalSubscriptionId: subIdPaypal,
-            plan: 'mensual',
+            plan: 'Plan Mensual',
             $push: { subcription: nuevaSub._id } 
         }
     );

@@ -12,9 +12,9 @@ const handlePaypalWebhook = async (req, res) => {
                 // Mapeo de IDs de PayPal a tus nombres internos
                 // Sustituye 'P-XXXX' por los IDs reales de tu dashboard de PayPal
                 const planMapping = {
-                    'P-8CJ06585H1246910MMSOZQNA': 'mensual',
-                    'P-0H354334ME8148454MTFK3YI': 'trimestral',
-                    'P-1PJ18025B84179353MTF4PKQ': 'anual'
+                    'P-8CJ06585H1246910MMSOZQNA': 'Plan Mensual',
+                    'P-0H354334ME8148454MTFK3YI': 'Plan Trimestral',
+                    'P-1PJ18025B84179353MTF4PKQ': 'Plan Anual'
                 };
                 const idPerfil = resource.custom_id; // Es el '69eaab...' de tu imagen
                 const subIdPaypal = resource.id;    // Es el 'I-ASP5X...' de tu imagen
@@ -49,7 +49,7 @@ const handlePaypalWebhook = async (req, res) => {
                 // Luego lo vinculas al perfil
                 await Profile.findByIdAndUpdate(idPerfil, {
                     paypalSubscriptionId: subIdPaypal,
-                    plan: 'mensual', // O el mapeo que ya tienes
+                    plan: 'Plan Mensual', // O el mapeo que ya tienes
                     $push: { subcription: nuevaSub._id } // IMPORTANTE: Metemos el ID en el array
                 });
                 console.log(`Perfil actualizado a ${planComprado}: ${resource.id}`);
