@@ -299,7 +299,11 @@ const createPayment = (req, res) => {
 
 //captura el dinero
 const executePayment = (req, res) => {
-    const token = req.params.token; // El ID que envió el front: 8A514055UT380242A
+    const { token } = req.body; // El ID que envió el front: 8A514055UT380242A
+
+    if (!token) {
+        return res.status(400).json({ ok: false, msg: 'Falta el token' });
+    }
 
     request.post(`${PAYPAL_API}/v2/checkout/orders/${token}/capture`, {
         // IMPORTANTE: Asegúrate de que 'auth' tenga tu user y pass de Sandbox
