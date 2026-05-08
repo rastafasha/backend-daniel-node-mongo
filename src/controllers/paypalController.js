@@ -9,7 +9,7 @@ const axios = require('axios');
 console.log("--- Verificación de PayPal en Render ---");
 console.log("API URL:", process.env.PAYPAL_API || "No definida");
 console.log("Client ID (inicio):", process.env.PAYPAL_CLIENT_ID ? process.env.PAYPAL_CLIENT_ID.substring(0, 10) + "..." : "No definido");
-console.log("Secret (inicio):", process.env.PAYPAL_CLIENT_SECRET ? process.env.PAYPAL_CLIENT_SECRET.substring(0, 5) + "..." : "No definido");
+console.log("Secret (inicio):", process.env.PAYPAL_SECRET ? process.env.PAYPAL_SECRET.substring(0, 5) + "..." : "No definido");
 console.log("---------------------------------------");
 
 
@@ -306,34 +306,39 @@ const createPayment = (req, res) => {
 
 //captura el dinero
 const executePayment = (req, res) => {
-    const { token } = req.body; // El ID que envió el front: 8A514055UT380242A
+    const { token } = req.body; // El ID que viene de Angular
 
-    if (!token) {
-        return res.status(400).json({ ok: false, msg: 'Falta el token' });
-    }
+    // 1. Generamos el header de autorización manualmente
+    const clientId = process.env.PAYPAL_CLIENT_ID;
+    const secret = process.env.PAYPAL_SECRET;
+    const auth = Buffer.from(`${clientId}:${secret}`).toString('base64');
 
-    request.post(`${PAYPAL_API}/v2/checkout/orders/${token}/capture`, {
-        // IMPORTANTE: Asegúrate de que 'auth' tenga tu user y pass de Sandbox
-        auth: {
-            user: process.env.PAYPAL_CLIENT_ID,
-            pass: process.env.PAYPAL_CLIENT_SECRET
-        },
+    // 2. Hacemos la petición con el header explícito
+    request.post(`${process.env.PAYPAL_API}/v2/checkout/orders/${token}/capture`, {
         headers: {
+            'Authorization': `Basic ${auth}`,
             'Content-Type': 'application/json'
         },
+        body: {}, // Cuerpo vacío según requiere la API de captura
         json: true
     }, (err, response) => {
-        if (err) return res.status(500).json({ error: err.message });
+        if (err) {
+            console.error("Error de red:", err);
+            return res.status(500).json({ ok: false, error: err.message });
+        }
 
-        // Si hay un error 400, aquí veremos qué dice PayPal realmente
+        // 3. Verificamos la respuesta real de PayPal en los logs
+        console.log("Status de Captura:", response.statusCode);
+        
         if (response.statusCode !== 201 && response.statusCode !== 200) {
-            console.log("Detalle del error PayPal:", response.body);
+            console.log("Detalle del Error:", JSON.stringify(response.body));
             return res.status(response.statusCode).json(response.body);
         }
 
         res.json({ ok: true, data: response.body });
     });
 };
+
 
 
 
