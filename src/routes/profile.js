@@ -15,7 +15,8 @@ const {
     activarPlanGratuitoInterno,
     saveSubscriptionId,
     sincronizarSuscripcionExistente,
-    fixSuscripcionAyer
+    fixSuscripcionAyer,
+    limpiarYActualizarSuscripcion
 } = require('../controllers/profileController');
 
 const {
@@ -26,6 +27,7 @@ const {
 
 router.get('/all/', validarJWT, getProfiles);
 router.get('/fixsubscription', fixSuscripcionAyer);
+router.get('/limpiarsubscription', limpiarYActualizarSuscripcion);
 router.get('/:id', 
     // [validarJWT],
      getProfile);

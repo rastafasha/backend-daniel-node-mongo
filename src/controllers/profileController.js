@@ -297,6 +297,47 @@ const fixSuscripcionAyer = async () => {
     console.log("¡Usuario sincronizado correctamente en su Perfil!");
 };
 
+const limpiarYActualizarSuscripcion = async (req, res) => {
+    try {
+        const idUsuario = "69f22b6bec356d77cf2407e1"; // El ID actual que estás usando
+
+        // 1. Creamos la suscripción definitiva
+        const nuevaSub = await Subcriptionpaypal.create({
+            email: "sb-oxcit51039797@://example.com",
+            monto: 20.90,
+            orderID: "I-ASP5X4YGDWJ1",
+            payerID: "FIX_FINAL",
+            plan_id: "P-8CJ06585H1246910MMSOZQNA",
+            status: 'ACTIVE',
+            usuario: idUsuario,
+            create_time: new Date()
+        });
+
+        // 2. Usamos $set para REEMPLAZAR el array anterior por uno nuevo con un solo ID
+        const perfilLimpio = await Profile.findOneAndUpdate(
+            { usuario: idUsuario },
+            { 
+                $set: { 
+                    plan: 'Plan Mensual', 
+                    subcription: [nuevaSub._id] // Reemplaza todo el array por este único ID
+                },
+                paypalSubscriptionId: "I-ASP5X4YGDWJ1"
+            },
+            { new: true }
+        );
+
+        res.status(200).send({ 
+            message: 'Perfil limpio y actualizado', 
+            planActual: perfilLimpio.plan,
+            subscripciones: perfilLimpio.subcription 
+        });
+
+    } catch (err) {
+        res.status(500).send({ error: err.message });
+    }
+};
+
+
 
 
 
@@ -311,7 +352,8 @@ module.exports = {
     activarPlanGratuitoInterno,
     saveSubscriptionId,
     sincronizarSuscripcionExistente,
-    fixSuscripcionAyer
+    fixSuscripcionAyer,
+    limpiarYActualizarSuscripcion
 
 
 };
