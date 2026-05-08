@@ -167,7 +167,8 @@ const listarProfilePorUsuario = async (req, res) => {
         }
 
         // 2. Verificar estado Premium (buscamos si alguna en el historial está ACTIVE)
-        const esPremium = profile_data.subcription?.some(sub => sub.status === 'ACTIVE') || false;
+        const esPremium = (profile_data.plan !== 'free') || 
+                   profile_data.subcription?.some(sub => sub.status === 'ACTIVE');
 
         res.status(200).send({ 
             profile: profile_data, 
@@ -229,6 +230,41 @@ const saveSubscriptionId = async (req, res) => {
 };
 
 
+const sincronizarSuscripcionExistente = async (req, res) => {
+    try {
+        const { idPerfil } = req.params; // El ID del documento Profile
+
+        // 1. Buscamos el perfil que ya tiene el ID de ayer
+        const profile = await Profile.findById(idPerfil);
+
+        if (!profile || !profile.paypalSubscriptionId) {
+            return res.status(404).send({ message: 'Perfil no encontrado o no tiene ID de PayPal' });
+        }
+
+        // 2. Creamos el documento en la colección 'subcriptions'
+        // Usamos los datos que ya tenemos y completamos con datos de prueba/ayer
+        const nuevaSub = await Subcriptionpaypal.create({
+            email: profile.emailPaypal || 'correo@ejemplo.com',
+            monto: 0, // Ajusta el monto si lo conoces
+            orderID: profile.paypalSubscriptionId, // El I-ASP5X...
+            payerID: 'SINCRONIZADO_MANUAL',
+            plan_id: 'P-8CJ06585H1246910MMSOZQNA', // Tu ID de plan mensual
+            status: 'ACTIVE',
+            usuario: profile.usuario,
+            create_time: new Date()
+        });
+
+        // 3. Empujamos el ID de la nueva suscripción al array del perfil
+        profile.subcription.push(nuevaSub._id);
+        profile.plan = 'mensual'; // Aseguramos que el plan no sea 'free'
+        await profile.save();
+
+        res.status(200).send({ message: 'Sincronización exitosa', subId: nuevaSub._id });
+
+    } catch (err) {
+        res.status(500).send({ error: err.message });
+    }
+};
 
 
 
@@ -242,7 +278,7 @@ module.exports = {
     listarProfilePorUsuario,
     activarPlanGratuitoInterno,
     saveSubscriptionId,
-    
+    sincronizarSuscripcionExistente
 
 
 };

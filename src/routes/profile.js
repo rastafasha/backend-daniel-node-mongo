@@ -14,6 +14,7 @@ const {
     listarProfilePorUsuario,
     activarPlanGratuitoInterno,
     saveSubscriptionId,
+    sincronizarSuscripcionExistente
 } = require('../controllers/profileController');
 
 const {
@@ -26,7 +27,7 @@ router.get('/all/', validarJWT, getProfiles);
 router.get('/:id', [validarJWT], getProfile);
 router.delete('/borrar/:id', [validarJWT, ], borrarProfile);
 router.get('/user_profile/:id',validarJWT, listarProfilePorUsuario);
-
+router.get('/sincronizar-fix/:id', sincronizarSuscripcionExistente);
 
 router.post('/crear', [
     validarJWT,
@@ -43,6 +44,7 @@ router.post('/plangratuito', [
 router.post('/save-subscription', [
     validarJWT,
 ], saveSubscriptionId);
+
 
 
 router.put('/editar/:id', [
