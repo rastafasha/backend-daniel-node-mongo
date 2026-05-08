@@ -86,33 +86,47 @@ const handlePaypalWebhook = async (req, res) => {
 
             // --- CASO COMPRAS ÚNICAS (Ej: Acceso de por vida o eBook) ---
             case 'PAYMENT.CAPTURE.COMPLETED':
-                // Separamos los IDs que vienen en el custom_id (Ej: "IDPERFIL|IDBLOG")
-                const [perfilId, blogId] = resource.custom_id.split('|');
-                const idTransaccion = resource.id;
+                const resource = req.body.resource;
 
-                try {
-                    const profile = await Profile.findById(idDelPerfil);
+                // PayPal puede poner el custom_id en varios lugares. Buscamos en todos:
+                const customId = resource.custom_id ||
+                    (resource.purchase_units && resource.purchase_units[0].custom_id) ||
+                    (resource.supplementary_data && resource.supplementary_data.related_ids.order_id);
 
-                    if (profile) {
-                        const nuevoPago = await Pago.create({
-                            referencia: idTransaccion,
-                            monto: parseFloat(resource.amount.value),
-                            usuario: profile.usuario,
-                            status: 'SUCCESS',
-                            validacion: 'COMPLETED',
-                            // Ahora sí usamos el ID que extrajimos del custom_id
-                            blog: blogId ? [blogId] : [],
-                        });
+                if (customId) {
+                    const [perfilId, blogsRaw] = customId.split('|');
+                    const blogsIdsArray = blogsRaw ? blogsRaw.split(',') : [];
 
-                        profile.pagos.push(nuevoPago._id);
-                        await profile.save();
+                    try {
+                        // Buscamos el perfil del usuario
+                        const profile = await Profile.findById(perfilId);
 
-                        console.log(`Pago único registrado para blog: ${idDelBlogComprado}`);
+                        if (profile) {
+                            // Creamos el documento de Pago
+                            const nuevoPago = await Pago.create({
+                                referencia: resource.id,
+                                monto: parseFloat(resource.amount.value),
+                                usuario: profile.usuario,
+                                blog: blogsIdsArray, // Guardamos los IDs de los blogs comprados
+                                status: 'SUCCESS',
+                                validacion: 'COMPLETED'
+                            });
+
+                            // Vinculamos el pago al perfil (El paso que nos falta)
+                            await Profile.findByIdAndUpdate(perfilId, {
+                                $push: { pagos: nuevoPago._id }
+                            });
+
+                            console.log(`✅ Compra ${resource.id} vinculada al perfil ${perfilId}`);
+                        }
+                    } catch (err) {
+                        console.error("❌ Error al procesar el pago:", err);
                     }
-                } catch (err) {
-                    console.error("Error al procesar el pago único:", err);
+                } else {
+                    console.log("⚠️ Webhook recibido pero no se encontró 'custom_id' en el recurso.");
                 }
                 break;
+
 
 
 
