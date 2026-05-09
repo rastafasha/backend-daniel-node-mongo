@@ -315,40 +315,32 @@ async function find_by_slug(req, res) {
 
         let fullContent = false;
         let esFavorito = false;
+        let perfil = null; // <--- DEFINIR AQUÍ PARA EVITAR EL ERROR
 
         if (uid) {
-            // 1. Verificar Favorito
             const existeFav = await Favorito.findOne({ usuario: uid, blog: blog_data._id });
             esFavorito = !!existeFav;
 
-            // 2. Verificar Acceso en Perfil
-            const perfil = await Profile.findOne({ usuario: uid });
+            perfil = await Profile.findOne({ usuario: uid }); // <--- ASIGNAR AQUÍ
 
             if (perfil) {
-                // Ajuste: Tu plan ahora se llama 'Plan Mensual' según el fix anterior
                 const esPremium = perfil.plan !== 'free'; 
-                
-                // Ajuste: En tu modelo 'pagos' es un array de IDs de la colección Pago, no de Blogs.
-                // Aquí podrías verificar si el blog_data._id está en un campo específico si fuera compra única.
                 const haComprado = perfil.pagos?.includes(blog_data._id); 
-
                 const tieneCreditosGratis = perfil.articulosVistos < 3;
 
-                if (esPremium || haComprado) {
+                if (esPremium || haComprado || tieneCreditosGratis) {
                     fullContent = true;
-                } else if (tieneCreditosGratis) {
-                    fullContent = true;
-                    await perfil.save();
                 }
             }
         }
 
+        // Ahora 'perfil' sí existe aquí, aunque sea null
         return res.status(200).send({ 
             ok: true, 
             blog: blog_data, 
             fullContent: fullContent, 
             esFavorito: esFavorito,
-            quedanGratis: uid ? Math.max(0, 3 - (perfil?.articulosVistos || 0)) : 0
+            quedanGratis: perfil ? Math.max(0, 3 - (perfil.articulosVistos || 0)) : 0
         });
 
     } catch (err) {
